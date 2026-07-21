@@ -93,7 +93,7 @@ Marcus submits a complete, validated permit application in under 10 minutes from
 | **3. Upload Replacement** | Taps document section; drags (or taps to browse on mobile) the updated fire suppression PDF; sees upload progress and inline preview | Document uploader, application detail (DOCS-01, DOCS-02, DOCS-03, DOCS-04, STAT-05) | "Is this the right file? Let me preview it before I confirm. And will they know I uploaded it?" | Determined, cautious; relieved when preview appears and upload confirms | Mobile upload on legacy portals is broken or unsupported | Responsive uploader works on iPhone; preview renders the PDF inline; confirmation toast says "Document uploaded — reviewer notified automatically" |
 | **4. Message the Reviewer** | Opens messaging panel; types a quick clarification question about the fire rating spec on the new plan | Messaging panel, application detail (MSG-01, MSG-02, MSG-03) | "I don't want to send this to a generic inbox and never hear back. Is the reviewer actually going to see this?" | Uncertain, but hopeful | Legacy: emails to a shared mailbox go unanswered for days; no application context | Message is threaded to the application; Marcus sees the reviewer's name and role in the panel header; sends without leaving the page |
 | **5. Await & Track** | Logs in the next morning; sees no new notifications; checks application status — still "Under Review"; checks back the following day | Dashboard, notification badge (DASH-01, STAT-02, STAT-07, MSG-03) | "Is it moving? Should I nudge them again? I don't want to be annoying but I need this approved before framing starts." | Impatient but informed — the timeline stage shows the application is in review, not stalled | Opacity: no way to distinguish "moving forward" from "lost in a queue" | Visual lifecycle timeline shows current stage, previous stages completed, and estimated next milestone; Marcus can see progress without guessing |
-| **6. Receive Approval** | Receives in-app notification: "Application #1042 — Approved." Opens app; reads approval notice with reviewer rationale; downloads approval certificate | Notification, application detail, document download (STAT-06, STAT-07, PERM-04, DOCS-05) | "Finally. Can I get a copy of this for my contractor?" | Relieved, satisfied | Approval arrives by mail days later in legacy systems; no digital copy accessible | In-app notification fires within seconds of approval; approval certificate downloadable immediately from application detail; full decision rationale visible |
+| **6. Receive Approval** | Receives in-app notification: "Application #1042 — Approved." Opens app; reads approval decision with reviewer rationale and timestamp on the application detail page | Notification, application detail (STAT-06, STAT-07, PERM-04) | "Finally. Can I share this with my contractor?" | Relieved, satisfied | Approval arrives by mail days later in legacy systems; no digital confirmation accessible | In-app notification fires within seconds of approval; application detail shows the approved status, reviewer's documented rationale, and exact approval timestamp — full decision record visible without any additional steps |
 
 ---
 
@@ -102,11 +102,11 @@ Marcus submits a complete, validated permit application in under 10 minutes from
 - **Delight Opportunity — Upload Confirmation:** "Reviewer notified automatically" removes Marcus's biggest anxiety: the uncertainty of whether the office actually received his document.
 - **Decision Point — Message vs. Phone Call:** The moment Marcus uses the in-app messenger instead of reaching for his phone is the moment the platform has replaced the phone-call habit — a permanent behavioral shift.
 - **Risk of Abandonment — Waiting Stage:** If the lifecycle timeline doesn't distinguish "actively in review" from "stalled/lost," Marcus will revert to calling the office during any period of silence.
-- **Delight Opportunity — Approval Notification:** Instant notification + downloadable certificate is the finish-line experience. If this feels good, Marcus submits his next application without hesitation.
+- **Delight Opportunity — Approval Notification:** Instant notification + immediate access to the approval decision with documented rationale is the finish-line experience. If this feels good, Marcus submits his next application without hesitation.
 
 #### Success Outcome
 
-Marcus identifies all active application statuses within 60 seconds of login, uploads a replacement document in under 3 minutes without leaving the application detail page, and receives approval confirmation with a downloadable certificate instantly — no phone calls at any stage (JTBD-01.2, JTBD-01.3, JTBD-01.4 success measures).
+Marcus identifies all active application statuses within 60 seconds of login, uploads a replacement document in under 3 minutes without leaving the application detail page, and receives approval confirmation instantly — with the reviewer's documented rationale and timestamp visible on the application detail page — no phone calls at any stage (JTBD-01.2, JTBD-01.3, JTBD-01.4 success measures).
 
 #### Feature Touchpoints
 
@@ -117,7 +117,7 @@ Marcus identifies all active application statuses within 60 seconds of login, up
 | Upload Replacement | Document uploader, inline preview, status update (DOCS-01–04, STAT-05) |
 | Message the Reviewer | Messaging panel, application detail (MSG-01, MSG-02, MSG-03) |
 | Await & Track | Dashboard, lifecycle timeline, notification (DASH-01, STAT-02, STAT-07) |
-| Receive Approval | Notification, approval record, certificate download (STAT-06, STAT-07, PERM-04) |
+| Receive Approval | Notification, approval decision with rationale and timestamp on application detail (STAT-06, STAT-07, PERM-04) |
 
 ---
 
@@ -364,7 +364,7 @@ James rebalances 12 applications across two reviewers in under 3 minutes, retrie
 | JRN-01.2 | Upload Replacement | JTBD-01.3 | Replacement document uploaded and reviewer auto-notified in <3 min |
 | JRN-01.2 | Message the Reviewer | JTBD-01.4 | In-app message sent and threaded to application; no email needed |
 | JRN-01.2 | Await & Track | JTBD-01.2 | Lifecycle timeline distinguishes "in review" from "stalled"; no call required |
-| JRN-01.2 | Receive Approval | JTBD-01.2, JTBD-01.3 | In-app notification within seconds; approval certificate downloadable immediately |
+| JRN-01.2 | Receive Approval | JTBD-01.2, JTBD-01.3 | In-app notification within seconds; approval decision with rationale and timestamp visible on application detail immediately |
 | JRN-02.1 | Login & Land | JTBD-02.1 | Reviewer dashboard loads in <3 sec with queue buckets sorted by action priority |
 | JRN-02.1 | Read the Buckets | JTBD-02.1 | Queue buckets clearly separate "Needs Action," "Awaiting Applicant," "Ready for Review" |
 | JRN-02.1 | Catch Overnight Responses | JTBD-02.4 | Applicant responses surface in correct bucket automatically; no email check needed |

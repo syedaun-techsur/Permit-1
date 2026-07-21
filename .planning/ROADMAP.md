@@ -41,7 +41,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Applicant can see a list of all their applications (submitted and draft) and open any for full detail
   3. Applicant can upload documents via drag-and-drop or file picker, preview them inline, and remove or replace them before submission — with immediate validation feedback on errors
   4. Applicant can view a visual lifecycle timeline showing the current stage (Draft → Submitted → Under Review → Additional Info Needed → Approved/Rejected) with timestamps for each past stage
-  5. The interface is fully responsive on desktop and mobile, skeleton screens appear during page-level loads, and all interactive elements have smooth hover/focus/active states
+  5. The interface renders correctly on desktop and mobile with no horizontal scroll at 375px viewport width on any applicant flow page (UX-01)
+  6. Skeleton screens appear during page-level content loads — no full-page spinner shown to the user (UX-03)
+  7. All interactive elements (buttons, inputs, links, cards) have distinct hover, focus, and active states with smooth transitions — no default browser-only styling (UX-04)
 **Plans**: TBD
 
 ### Phase 3: Review Workflow
@@ -64,7 +66,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Applicant dashboard shows a summary of active permits, recent status changes, and unread message counts at a glance
   2. Reviewer dashboard shows assigned applications sorted by status priority with pending actions and unread messages surfaced
   3. Admin dashboard shows system-wide statistics: total applications by status and reviewer workload
-  4. Dashboard includes at least one visual progress indicator (status distribution chart or activity feed) that is meaningful and readable without needing to drill into individual permits
+  4. A reviewer can identify the status distribution of their application queue from the dashboard page without opening any individual application; an applicant can see all active permit statuses and unread message counts without navigating away from their dashboard
 **Plans**: TBD
 
 ### Phase 5: Admin & Compliance

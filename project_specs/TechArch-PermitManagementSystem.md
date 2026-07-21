@@ -402,6 +402,7 @@ src/
 │   │   ├── PermitDetailPage.tsx    # Tabs: Info | Documents | Messages | Timeline
 │   │   └── PermitFormPage.tsx      # New + Edit (draft)
 │   ├── admin/
+│   │   ├── AllApplicationsPage.tsx  # Admin view: all permits across all users (PERM-07)
 │   │   ├── UserManagementPage.tsx
 │   │   └── AuditLogPage.tsx
 │   └── errors/
@@ -801,6 +802,29 @@ COMMENT ON COLUMN audit_logs.metadata IS 'Contextual data: { from_status, to_sta
 
 ---
 
+#### refresh_tokens
+
+```sql
+CREATE TABLE refresh_tokens (
+    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash  TEXT        NOT NULL UNIQUE,
+    expires_at  TIMESTAMPTZ NOT NULL,
+    revoked_at  TIMESTAMPTZ,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_rt_user    ON refresh_tokens (user_id);
+CREATE INDEX idx_rt_token   ON refresh_tokens (token_hash);
+CREATE INDEX idx_rt_expires ON refresh_tokens (expires_at);
+
+COMMENT ON TABLE  refresh_tokens           IS 'Server-side store of active refresh tokens; enables revocation on logout and rotation on refresh';
+COMMENT ON COLUMN refresh_tokens.token_hash IS 'SHA-256 hash of the refresh token JWT; raw token is never stored';
+COMMENT ON COLUMN refresh_tokens.revoked_at IS 'Non-null = token has been explicitly invalidated (logout or rotation)';
+```
+
+---
+
 #### password_reset_tokens
 
 ```sql
@@ -1153,7 +1177,7 @@ interface ConfirmUploadRequest { documentId: string; }
 ```typescript
 // Response: 200
 interface DownloadResponse {
-  downloadUrl: string;  // presigned GET URL; expires in 5 minutes
+  downloadUrl: string;  // presigned GET URL; expires in 15 minutes
   fileName: string;
 }
 ```
@@ -1375,7 +1399,7 @@ async approvePermit(
 | Data in transit | TLS 1.2+ enforced on all connections (API, database, S3); HSTS header required |
 | Data at rest | PostgreSQL encryption at rest via managed provider (AWS RDS, Supabase encrypted volumes) |
 | S3 objects | Bucket is private (no public access); access only via presigned URLs with short expiry |
-| Presigned URL expiry | Upload URLs: 15 minutes; download URLs: 5 minutes |
+| Presigned URL expiry | Upload URLs: 15 minutes; download URLs: 15 minutes |
 | JWT secrets | RS256 (asymmetric) preferred; HS256 acceptable if secret ≥ 256 bits and stored in env vault |
 | Sensitive env vars | Never committed to VCS; injected via environment variables / secrets manager |
 | Database connections | Connection pool with TLS; credentials in env vars only |

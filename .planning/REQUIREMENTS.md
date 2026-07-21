@@ -157,4 +157,4 @@
 
 ---
 *Requirements defined: 2026-07-21*
-*Last updated: 2026-07-21 after initial definition*
+*Last updated: 2026-07-21 after roadmap creation — all 40 v1 requirements mapped to phases*

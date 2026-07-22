@@ -70,7 +70,14 @@ Plans:
   3. Reviewer can approve or reject an application with a documented reason, closing out the lifecycle
   4. Applicant and reviewer can exchange messages on a permit application — messages show sender name, role, and timestamp; reviewer can attach documents or notes
   5. Applicant receives an in-app notification when their permit status changes; unread message counts appear on the permit list
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Phase 3 DB migration (messages/message_reads/message_attachments) + lifecycle action endpoints (STAT-03/04/05/06) + notification wiring (STAT-07)
+- [ ] 03-02-PLAN.md — Messages NestJS module (send/list/read/attachment) + notifications list/read endpoints + document archive endpoint (DOCS-05)
+- [ ] 03-03-PLAN.md — Frontend messaging components (MessagePanel/MessageBubble/MessageComposer) + NotificationPanel + useMessages/useNotifications hooks + API clients
+- [ ] 03-04-PLAN.md — ReviewQueuePage + ReviewDetailPage + ReviewerActionPanel + modals + applicant respond-to-info UI + routing (PERM-05/06, STAT-03/04/05/06)
+- [ ] 03-05-PLAN.md — Playwright E2E: full lifecycle (approve + reject) + messaging cross-user + notification display + Phase 2 regression
 
 ### Phase 4: Dashboards
 **Goal**: Every role lands on a dashboard that immediately surfaces their most important information — active permits, pending actions, status distribution, and unread messages

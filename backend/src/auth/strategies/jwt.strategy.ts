@@ -1,0 +1,32 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UsersService } from '../../users/users.service';
+import { UserRole } from '../../common/enums/role.enum';
+
+export interface JwtPayload {
+  sub: string;
+  email: string;
+  role: UserRole;
+  iat: number;
+  exp: number;
+}
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+  constructor(private readonly usersService: UsersService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: process.env.JWT_SECRET || 'dev_jwt_secret_change_in_production_minimum_256_bits',
+    });
+  }
+
+  async validate(payload: JwtPayload): Promise<{ id: string; email: string; role: UserRole }> {
+    const user = await this.usersService.findById(payload.sub);
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException({ code: 'ACCOUNT_INACTIVE', message: 'Account is inactive.' });
+    }
+    return { id: payload.sub, email: payload.email, role: payload.role };
+  }
+}

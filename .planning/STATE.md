@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 02-applicant-core-05-PLAN.md
-last_updated: "2026-07-22T19:47:07.156Z"
+last_updated: "2026-07-22T19:50:32.859Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 22
-  completed_plans: 9
+  completed_plans: 10
   percent: 14
 ---
 
@@ -59,6 +59,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 02-applicant-core P03 | 7min | 2 tasks | 16 files |
 | Phase 02-applicant-core P04 | 9min | 2 tasks | 8 files |
 | Phase 02-applicant-core P05 | 4min | 2 tasks | 4 files |
+| Phase 02-applicant-core P06 | 7min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,7 @@ Recent decisions affecting current work:
 - [Phase 02-applicant-core]: Plain axios (not apiClient) for MinIO presigned PUT — presigned URL auth is in query params; adding JWT Authorization header would break MinIO signature verification
 - [Phase 02-applicant-core]: Promise.allSettled for parallel batch uploads — individual file errors don't abort other uploads in the same batch
 - [Phase 02-applicant-core]: PermitStatusTimeline uses data-testid + data-state attributes for Playwright test targeting of stage states
+- [Phase 02-applicant-core]: NavBar implemented as separate component rendered by AppShell; document.title managed in AppShell via useEffect + title prop
 
 ### Pending Todos
 

@@ -147,6 +147,22 @@ None - no external service configuration required for this plan. The MinIO presi
 - E2E tests written; execution deferred to verify phase (tests require running app + mocked API)
 - Ready for Phase 2 Plan 05 (permit submission flow, DOCUMENTS_REQUIRED gate)
 
+## Self-Check: PASSED
+
+All key files verified on disk:
+- ✓ frontend/src/components/document/DocumentUploadZone.tsx
+- ✓ frontend/src/components/document/UploadProgress.tsx
+- ✓ frontend/src/components/document/DocumentList.tsx
+- ✓ frontend/src/components/document/DocumentPreview.tsx
+- ✓ frontend/src/api/documents.api.ts
+- ✓ frontend/src/hooks/useDocumentUpload.ts
+- ✓ e2e/document-upload.spec.ts
+
+Commits verified:
+- ✓ a03ed87: feat(02-04): documents API client + useDocumentUpload hook
+- ✓ 54813f1: feat(02-04): Document UI components, PermitFormPage Step 2, and E2E tests
+- ✓ 2eb7343: docs(02-04): complete document-upload-ui plan
+
 ---
 *Phase: 02-applicant-core*
 *Completed: 2026-07-22*

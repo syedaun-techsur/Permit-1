@@ -3,7 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../app.module';
 import { DataSource } from 'typeorm';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 
 /**
  * Messaging integration tests.

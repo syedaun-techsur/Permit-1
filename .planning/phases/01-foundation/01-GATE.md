@@ -18,3 +18,9 @@ waves:
 - Fix attempts: 1/3 — deps not installed on first run → `npm install` → build green
 
 **Note:** The only test file present is `e2e/design-system.spec.ts` (Playwright). No unit or integration tests exist in wave 1 plans. E2E suite deferred per gate rules.
+
+## Wave 2
+
+- Build: `(cd backend && npm run build) && (cd frontend && npm run build)` → pass
+- Tests: E2E-only suite (no unit tests in this wave) — deferred to verify phase
+- Fix attempts: 0/3

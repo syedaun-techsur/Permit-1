@@ -10,6 +10,6 @@ import { S3Service } from './s3.service';
   imports: [TypeOrmModule.forFeature([Document, PermitApplication])],
   controllers: [DocumentsController],
   providers: [DocumentsService, S3Service],
-  exports: [DocumentsService],
+  exports: [DocumentsService, S3Service],
 })
 export class DocumentsModule {}

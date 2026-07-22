@@ -14,9 +14,14 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { PermitsService, ListQuery } from './permits.service';
 import { CreatePermitDto } from './dto/create-permit.dto';
 import { UpdatePermitDto } from './dto/update-permit.dto';
+import { RequestInfoDto } from './dto/request-info.dto';
+import { RespondToInfoDto } from './dto/respond-to-info.dto';
+import { DecideDto } from './dto/decide.dto';
 import { ApplicationStatus } from './entities/permit-application.entity';
 import { UserRole } from '../common/enums/role.enum';
 
@@ -92,5 +97,55 @@ export class PermitsController {
   ) {
     const stages = await this.permitsService.getLifecycleStages(req.user.id, id);
     return { stages };
+  }
+
+  // ── Phase 3: Lifecycle action endpoints ───────────────────────────────
+
+  // POST /permits/:id/actions/begin-review — reviewer starts review
+  @Post(':id/actions/begin-review')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.REVIEWER, UserRole.ADMIN)
+  async beginReview(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.permitsService.beginReview(id, req.user.id);
+  }
+
+  // POST /permits/:id/actions/request-info — reviewer requests additional info
+  @Post(':id/actions/request-info')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.REVIEWER, UserRole.ADMIN)
+  async requestInfo(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RequestInfoDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.permitsService.requestInfo(id, req.user.id, dto);
+  }
+
+  // POST /permits/:id/actions/respond-to-info — applicant responds to info request
+  @Post(':id/actions/respond-to-info')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.APPLICANT)
+  async respondToInfo(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RespondToInfoDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.permitsService.respondToInfo(id, req.user.id, dto, false);
+  }
+
+  // POST /permits/:id/actions/decide — reviewer approves or rejects
+  @Post(':id/actions/decide')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.REVIEWER, UserRole.ADMIN)
+  async decide(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: DecideDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const isAdmin = req.user.role === UserRole.ADMIN;
+    return this.permitsService.decide(id, req.user.id, dto, isAdmin);
   }
 }

@@ -11,8 +11,13 @@ import { PermitApplication, ApplicationStatus } from './entities/permit-applicat
 import { Document, DocumentStatus } from '../documents/entities/document.entity';
 import { LifecycleService } from '../lifecycle/lifecycle.service';
 import { AuditService } from '../audit/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 import { CreatePermitDto } from './dto/create-permit.dto';
 import { UpdatePermitDto } from './dto/update-permit.dto';
+import { RequestInfoDto } from './dto/request-info.dto';
+import { RespondToInfoDto } from './dto/respond-to-info.dto';
+import { DecideDto } from './dto/decide.dto';
 
 export interface PaginatedResult {
   data: PermitApplication[];
@@ -37,6 +42,7 @@ export class PermitsService {
     private readonly dataSource: DataSource,
     private readonly lifecycleService: LifecycleService,
     private readonly auditService: AuditService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async createDraft(userId: string, dto: CreatePermitDto): Promise<PermitApplication> {
@@ -198,5 +204,180 @@ export class PermitsService {
       throw new ForbiddenException('Access denied');
     }
     return this.lifecycleService.getStages(id);
+  }
+
+  // ── Phase 3 lifecycle action methods ──────────────────────────────────
+
+  private async findPermitOrFail(id: string): Promise<PermitApplication> {
+    const app = await this.permitRepo.findOne({ where: { id } });
+    if (!app) {
+      throw new NotFoundException('Application not found');
+    }
+    return app;
+  }
+
+  async beginReview(id: string, reviewerId: string): Promise<PermitApplication> {
+    const permit = await this.findPermitOrFail(id);
+
+    if (
+      permit.status !== ApplicationStatus.SUBMITTED &&
+      permit.status !== ApplicationStatus.ADDITIONAL_INFO_NEEDED
+    ) {
+      throw new ConflictException('INVALID_STATUS_TRANSITION');
+    }
+
+    // Assign reviewer if not already assigned
+    if (!permit.reviewerId) {
+      permit.reviewerId = reviewerId;
+    }
+    permit.status = ApplicationStatus.UNDER_REVIEW;
+    permit.underReviewAt = new Date();
+
+    const saved = await this.permitRepo.save(permit);
+
+    await Promise.all([
+      this.lifecycleService.createStage(id, ApplicationStatus.UNDER_REVIEW, reviewerId),
+      this.auditService.createEntry('REVIEW_STARTED', reviewerId, id, {}),
+    ]);
+
+    // Notify applicant
+    await this.notificationsService.createNotification(
+      saved.applicantId,
+      id,
+      `Your permit application #${saved.referenceNumber} is now under review.`,
+      NotificationType.REVIEWER_ASSIGNED,
+    );
+
+    return saved;
+  }
+
+  async requestInfo(id: string, reviewerId: string, dto: RequestInfoDto): Promise<PermitApplication> {
+    const permit = await this.findPermitOrFail(id);
+
+    if (permit.status !== ApplicationStatus.UNDER_REVIEW) {
+      throw new ConflictException('INVALID_STATUS_TRANSITION');
+    }
+
+    permit.status = ApplicationStatus.ADDITIONAL_INFO_NEEDED;
+    permit.infoRequestNote = dto.infoRequestNote;
+    permit.infoRequestAt = new Date();
+
+    const saved = await this.permitRepo.save(permit);
+
+    await Promise.all([
+      this.lifecycleService.createStage(id, ApplicationStatus.ADDITIONAL_INFO_NEEDED, reviewerId),
+      this.auditService.createEntry('INFO_REQUESTED', reviewerId, id, {}),
+    ]);
+
+    // Notify applicant with excerpt
+    const excerpt = dto.infoRequestNote.substring(0, 100);
+    await this.notificationsService.createNotification(
+      saved.applicantId,
+      id,
+      `Additional information needed for #${saved.referenceNumber}: "${excerpt}"`,
+      NotificationType.INFO_REQUEST,
+    );
+
+    return saved;
+  }
+
+  async respondToInfo(
+    id: string,
+    applicantId: string,
+    dto: RespondToInfoDto,
+    hasNewDocuments: boolean,
+  ): Promise<PermitApplication> {
+    const permit = await this.findPermitOrFail(id);
+
+    if (permit.status !== ApplicationStatus.ADDITIONAL_INFO_NEEDED) {
+      throw new ConflictException('INVALID_STATUS_TRANSITION');
+    }
+
+    // Verify ownership — applicant can only respond to their own permit
+    if (permit.applicantId !== applicantId) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    if (!dto.responseNote && !hasNewDocuments) {
+      throw new UnprocessableEntityException('RESPONSE_OR_DOCUMENTS_REQUIRED');
+    }
+
+    permit.status = ApplicationStatus.UNDER_REVIEW;
+    permit.infoResponseNote = dto.responseNote ?? null;
+    permit.infoResponseAt = new Date();
+
+    const saved = await this.permitRepo.save(permit);
+
+    await Promise.all([
+      this.lifecycleService.createStage(id, ApplicationStatus.UNDER_REVIEW, applicantId),
+      this.auditService.createEntry('INFO_PROVIDED', applicantId, id, {}),
+    ]);
+
+    // Notify reviewer if assigned
+    if (saved.reviewerId) {
+      await this.notificationsService.createNotification(
+        saved.reviewerId,
+        id,
+        `Applicant has responded to your information request on #${saved.referenceNumber}.`,
+        NotificationType.INFO_RESPONSE,
+      );
+    }
+
+    return saved;
+  }
+
+  async decide(
+    id: string,
+    reviewerId: string,
+    dto: DecideDto,
+    isAdmin: boolean,
+  ): Promise<PermitApplication> {
+    const permit = await this.findPermitOrFail(id);
+
+    if (permit.status !== ApplicationStatus.UNDER_REVIEW) {
+      throw new ConflictException('INVALID_STATUS_TRANSITION');
+    }
+
+    // Only the assigned reviewer or an admin can decide
+    if (!isAdmin && permit.reviewerId !== reviewerId) {
+      throw new ForbiddenException('Only the assigned reviewer can make a decision');
+    }
+
+    const outcomeStatus =
+      dto.outcome === 'approved'
+        ? ApplicationStatus.APPROVED
+        : ApplicationStatus.REJECTED;
+
+    permit.status = outcomeStatus;
+    permit.decisionOutcome = dto.outcome;
+    permit.decisionReason = dto.decisionReason;
+    permit.decisionAt = new Date();
+    permit.decidedBy = reviewerId;
+
+    const saved = await this.permitRepo.save(permit);
+
+    const auditAction =
+      dto.outcome === 'approved' ? 'APPLICATION_APPROVED' : 'APPLICATION_REJECTED';
+
+    await Promise.all([
+      this.lifecycleService.createStage(id, outcomeStatus, reviewerId),
+      this.auditService.createEntry(auditAction, reviewerId, id, { outcome: dto.outcome }),
+    ]);
+
+    // Notify applicant
+    const excerpt = dto.decisionReason.substring(0, 100);
+    const notifBody =
+      dto.outcome === 'approved'
+        ? `Your permit application #${saved.referenceNumber} has been approved.`
+        : `Your permit application #${saved.referenceNumber} has been rejected: ${excerpt}`;
+
+    await this.notificationsService.createNotification(
+      saved.applicantId,
+      id,
+      notifBody,
+      NotificationType.DECISION_MADE,
+    );
+
+    return saved;
   }
 }

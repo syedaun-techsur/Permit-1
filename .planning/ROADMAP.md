@@ -50,7 +50,15 @@ Plans:
   5. The interface renders correctly on desktop and mobile with no horizontal scroll at 375px viewport width on any applicant flow page (UX-01)
   6. Skeleton screens appear during page-level content loads — no full-page spinner shown to the user (UX-03)
   7. All interactive elements (buttons, inputs, links, cards) have distinct hover, focus, and active states with smooth transitions — no default browser-only styling (UX-04)
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Phase 2 DB migration (5 tables) + TypeORM entities + permits API module (PERM-01/02/03/04, STAT-01)
+- [ ] 02-02-PLAN.md — Documents module + MinIO/S3 presigned URL service (DOCS-01/02/03/04)
+- [ ] 02-03-PLAN.md — Frontend types + API client + Zustand store + PermitListPage + PermitFormPage + auto-save (PERM-01/02/03, UX-03/04)
+- [ ] 02-04-PLAN.md — Document upload UI (drag-drop zone, progress, preview, remove) + wired into PermitFormPage (DOCS-01/02/03/04)
+- [ ] 02-05-PLAN.md — PermitStatusTimeline component + PermitDetailPage assembling all panels (PERM-04, STAT-02, UX-03)
+- [ ] 02-06-PLAN.md — AppShell + NavBar responsive + notification badge + 375px E2E tests + interactive state tests (UX-01/03/04)
 
 ### Phase 3: Review Workflow
 **Goal**: Reviewers can manage their assigned applications end-to-end — advancing, requesting information, deciding — while applicants and reviewers can communicate through an integrated messaging panel

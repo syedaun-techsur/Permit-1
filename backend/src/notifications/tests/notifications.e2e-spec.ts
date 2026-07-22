@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as supertest from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../../app.module';
 import * as cookieParser from 'cookie-parser';
 
@@ -25,14 +25,14 @@ describe('NotificationsController (e2e)', () => {
   let notifId: string;
 
   async function registerUser(email: string, password: string, role: 'applicant' | 'reviewer' = 'applicant') {
-    const reg = await supertest(app.getHttpServer())
+    const reg = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, password, fullName: `Test ${role}`, role });
     expect([200, 201]).toContain(reg.status);
   }
 
   async function loginUser(email: string, password: string): Promise<string> {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email, password });
     expect(res.status).toBe(200);
@@ -40,7 +40,7 @@ describe('NotificationsController (e2e)', () => {
   }
 
   async function createAndSubmitPermit(token: string): Promise<string> {
-    const created = await supertest(app.getHttpServer())
+    const created = await request(app.getHttpServer())
       .post('/permits')
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -60,13 +60,13 @@ describe('NotificationsController (e2e)', () => {
     const id = created.body.id;
 
     // Get upload URL and register a document (required for submission)
-    const urlRes = await supertest(app.getHttpServer())
+    const urlRes = await request(app.getHttpServer())
       .post(`/permits/${id}/documents/upload-url`)
       .set('Authorization', `Bearer ${token}`)
       .send({ filename: 'test.pdf', mimeType: 'application/pdf', sizeBytes: 1024 });
     expect(urlRes.status).toBe(201);
 
-    await supertest(app.getHttpServer())
+    await request(app.getHttpServer())
       .post(`/permits/${id}/documents`)
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -76,7 +76,7 @@ describe('NotificationsController (e2e)', () => {
         storageKey: urlRes.body.storageKey,
       });
 
-    const submitted = await supertest(app.getHttpServer())
+    const submitted = await request(app.getHttpServer())
       .post(`/permits/${id}/submit`)
       .set('Authorization', `Bearer ${token}`);
     expect(submitted.status).toBe(201);
@@ -111,7 +111,7 @@ describe('NotificationsController (e2e)', () => {
     permitId = await createAndSubmitPermit(applicantToken);
 
     // Begin review as reviewer — this creates a STATUS_CHANGE notification for the applicant
-    const review = await supertest(app.getHttpServer())
+    const review = await request(app.getHttpServer())
       .post(`/permits/${permitId}/actions/begin-review`)
       .set('Authorization', `Bearer ${reviewerToken}`);
     expect([200, 201]).toContain(review.status);
@@ -122,7 +122,7 @@ describe('NotificationsController (e2e)', () => {
   });
 
   it('Test 1: GET /notifications (as applicant) → 200, data array with under-review notification', async () => {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .get('/notifications')
       .set('Authorization', `Bearer ${applicantToken}`);
 
@@ -137,14 +137,14 @@ describe('NotificationsController (e2e)', () => {
   });
 
   it('Test 2: PATCH /notifications/:notifId/read → 200; GET /notifications/unread-count → 0', async () => {
-    const readRes = await supertest(app.getHttpServer())
+    const readRes = await request(app.getHttpServer())
       .patch(`/notifications/${notifId}/read`)
       .set('Authorization', `Bearer ${applicantToken}`);
 
     expect(readRes.status).toBe(200);
 
     // Verify unread count drops to 0
-    const countRes = await supertest(app.getHttpServer())
+    const countRes = await request(app.getHttpServer())
       .get('/notifications/unread-count')
       .set('Authorization', `Bearer ${applicantToken}`);
 
@@ -153,7 +153,7 @@ describe('NotificationsController (e2e)', () => {
   });
 
   it('Test 3: PATCH /notifications/read-all → 200', async () => {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .patch('/notifications/read-all')
       .set('Authorization', `Bearer ${applicantToken}`);
 
@@ -163,7 +163,7 @@ describe('NotificationsController (e2e)', () => {
   });
 
   it('Test 4: GET /notifications (as other user) → 200 with empty data (no cross-user leakage)', async () => {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .get('/notifications')
       .set('Authorization', `Bearer ${otherToken}`);
 

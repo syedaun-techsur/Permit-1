@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as supertest from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../../app.module';
 import { DataSource } from 'typeorm';
 import * as cookieParser from 'cookie-parser';
@@ -28,7 +28,7 @@ describe('MessagesController (e2e)', () => {
   const BASE_URL = 'http://localhost:3000';
 
   async function registerUser(email: string, password: string, role: 'applicant' | 'reviewer' = 'applicant') {
-    const reg = await supertest(app.getHttpServer())
+    const reg = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, password, fullName: `Test ${role}`, role });
     expect(reg.status).toBe(201);
@@ -36,7 +36,7 @@ describe('MessagesController (e2e)', () => {
   }
 
   async function loginUser(email: string, password: string): Promise<string> {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email, password });
     expect(res.status).toBe(200);
@@ -45,7 +45,7 @@ describe('MessagesController (e2e)', () => {
 
   async function createAndSubmitPermit(token: string): Promise<string> {
     // Create draft
-    const created = await supertest(app.getHttpServer())
+    const created = await request(app.getHttpServer())
       .post('/permits')
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -66,14 +66,14 @@ describe('MessagesController (e2e)', () => {
 
     // Upload a document (required for submission)
     // Get upload URL
-    const urlRes = await supertest(app.getHttpServer())
+    const urlRes = await request(app.getHttpServer())
       .post(`/permits/${id}/documents/upload-url`)
       .set('Authorization', `Bearer ${token}`)
       .send({ filename: 'test.pdf', mimeType: 'application/pdf', sizeBytes: 1024 });
     expect(urlRes.status).toBe(201);
 
     // Register document
-    await supertest(app.getHttpServer())
+    await request(app.getHttpServer())
       .post(`/permits/${id}/documents`)
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -84,7 +84,7 @@ describe('MessagesController (e2e)', () => {
       });
 
     // Submit
-    const submitted = await supertest(app.getHttpServer())
+    const submitted = await request(app.getHttpServer())
       .post(`/permits/${id}/submit`)
       .set('Authorization', `Bearer ${token}`);
     expect(submitted.status).toBe(201);
@@ -126,7 +126,7 @@ describe('MessagesController (e2e)', () => {
     permitId = await createAndSubmitPermit(applicantToken);
 
     // Begin review as reviewer
-    const review = await supertest(app.getHttpServer())
+    const review = await request(app.getHttpServer())
       .post(`/permits/${permitId}/actions/begin-review`)
       .set('Authorization', `Bearer ${reviewerToken}`);
     expect([200, 201]).toContain(review.status);
@@ -137,7 +137,7 @@ describe('MessagesController (e2e)', () => {
   });
 
   it('Test 1: POST /permits/:id/messages as applicant → 201, MessageObject with senderRole=applicant', async () => {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .post(`/permits/${permitId}/messages`)
       .set('Authorization', `Bearer ${applicantToken}`)
       .send({ body: 'Hello, can you review my application?' });
@@ -157,7 +157,7 @@ describe('MessagesController (e2e)', () => {
   });
 
   it('Test 2: GET /permits/:id/messages → 200, array includes the message just sent', async () => {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .get(`/permits/${permitId}/messages`)
       .set('Authorization', `Bearer ${reviewerToken}`);
 
@@ -171,7 +171,7 @@ describe('MessagesController (e2e)', () => {
   });
 
   it('Test 3: GET /permits/:id/messages/unread-count (as reviewer) → { unreadCount: 1 }', async () => {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .get(`/permits/${permitId}/messages/unread-count`)
       .set('Authorization', `Bearer ${reviewerToken}`);
 
@@ -180,14 +180,14 @@ describe('MessagesController (e2e)', () => {
   });
 
   it('Test 4: POST /permits/:id/messages/:msgId/read → 200; re-check unreadCount → 0', async () => {
-    const readRes = await supertest(app.getHttpServer())
+    const readRes = await request(app.getHttpServer())
       .post(`/permits/${permitId}/messages/${messageId}/read`)
       .set('Authorization', `Bearer ${reviewerToken}`);
 
     expect(readRes.status).toBe(200);
 
     // Re-check unread count
-    const countRes = await supertest(app.getHttpServer())
+    const countRes = await request(app.getHttpServer())
       .get(`/permits/${permitId}/messages/unread-count`)
       .set('Authorization', `Bearer ${reviewerToken}`);
 
@@ -197,7 +197,7 @@ describe('MessagesController (e2e)', () => {
 
   it('Test 5: POST message on draft application → 403', async () => {
     // Create a new draft permit (not submitted)
-    const draft = await supertest(app.getHttpServer())
+    const draft = await request(app.getHttpServer())
       .post('/permits')
       .set('Authorization', `Bearer ${applicantToken}`)
       .send({
@@ -217,7 +217,7 @@ describe('MessagesController (e2e)', () => {
     expect(draft.status).toBe(201);
     const draftId = draft.body.id;
 
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .post(`/permits/${draftId}/messages`)
       .set('Authorization', `Bearer ${applicantToken}`)
       .send({ body: 'Test message on draft' });
@@ -226,7 +226,7 @@ describe('MessagesController (e2e)', () => {
   });
 
   it('Test 6: POST attachment upload-url as applicant → 403', async () => {
-    const res = await supertest(app.getHttpServer())
+    const res = await request(app.getHttpServer())
       .post(`/permits/${permitId}/messages/${messageId}/attachments/upload-url`)
       .set('Authorization', `Bearer ${applicantToken}`)
       .send({ filename: 'test.pdf', mimeType: 'application/pdf', sizeBytes: 1024 });

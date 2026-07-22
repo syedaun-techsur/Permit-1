@@ -40,7 +40,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose })
   const handleNotificationClick = async (notifId: string, applicationId: string) => {
     await markOneRead(notifId);
     onClose();
-    const path = isReviewer ? `/review/${applicationId}` : `/applications/${applicationId}`;
+    const path = isReviewer ? `/review/${applicationId}` : `/permits/${applicationId}`;
     navigate(path);
   };
 

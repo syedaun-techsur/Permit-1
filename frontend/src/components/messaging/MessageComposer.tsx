@@ -119,6 +119,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
           <>
             <button
               type="button"
+              data-testid="attach-btn"
               onClick={() => fileInputRef.current?.click()}
               disabled={sending}
               className="flex-shrink-0 p-2 text-text-secondary hover:text-text-primary hover:bg-surface-sidebar rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:opacity-50"

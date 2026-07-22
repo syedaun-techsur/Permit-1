@@ -60,13 +60,37 @@ export class PermitsController {
     return this.permitsService.listApplications(req.user.id, query);
   }
 
+  // GET /permits/review-queue — reviewer/admin: all submitted applications.
+  // MUST be declared before the `:id` route: NestJS/Express match in
+  // declaration order, and the `:id` route's ParseUUIDPipe would otherwise
+  // reject the literal string "review-queue" with a 400.
+  @Get('review-queue')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.REVIEWER, UserRole.ADMIN)
+  async reviewQueue(
+    @Query('status') status: ApplicationStatus | undefined,
+    @Query('permitType') permitType: string | undefined,
+    @Query('assignment') assignment: string | undefined,
+    @Query('page') page: string | undefined,
+    @Query('limit') limit: string | undefined,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.permitsService.listReviewQueue(req.user.id, {
+      status,
+      permitType,
+      assignment,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
+  }
+
   // GET /permits/:id — full application detail
   @Get(':id')
   async getOne(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.permitsService.getById(req.user.id, id);
+    return this.permitsService.getById(req.user.id, id, req.user.role);
   }
 
   // PATCH /permits/:id — auto-save draft update
@@ -95,7 +119,11 @@ export class PermitsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: AuthenticatedRequest,
   ) {
-    const stages = await this.permitsService.getLifecycleStages(req.user.id, id);
+    const stages = await this.permitsService.getLifecycleStages(
+      req.user.id,
+      id,
+      req.user.role,
+    );
     return { stages };
   }
 

@@ -1,15 +1,22 @@
-import React from 'react';
-import { TopBar } from './TopBar';
-import { Sidebar } from './Sidebar';
+import React, { useEffect } from 'react';
+import { NavBar } from './NavBar';
 
-export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex flex-col h-screen">
-    <TopBar />
-    <div className="flex flex-1 overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 overflow-auto bg-surface-base p-6">
+interface AppShellProps {
+  children: React.ReactNode;
+  title?: string; // Optional page title suffix, e.g., permit.reference_number
+}
+
+export const AppShell: React.FC<AppShellProps> = ({ children, title }) => {
+  useEffect(() => {
+    document.title = title ? `${title} | Permit System` : 'Permit System';
+  }, [title]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <NavBar />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
     </div>
-  </div>
-);
+  );
+};

@@ -90,7 +90,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               {canModify(applicationStatus) && (
                 <button
                   onClick={() => setConfirmDoc(doc)}
-                  className="shrink-0 p-1.5 text-text-secondary hover:text-feedback-error rounded focus:outline-none focus:ring-2 focus:ring-feedback-error transition-colors"
+                  className="shrink-0 p-1.5 text-text-secondary hover:text-feedback-error hover:bg-red-50 rounded focus:outline-none focus:ring-2 focus:ring-feedback-error transition-colors"
                   aria-label={`Remove ${doc.filename}`}
                 >
                   <Trash2 className="w-4 h-4" />

@@ -75,7 +75,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
               ? 'border-border-default bg-surface-sidebar opacity-60 cursor-not-allowed'
               : 'border-border-default bg-surface-card hover:border-brand-primary cursor-default',
         ].join(' ')}
-        data-testid="upload-zone"
+        data-testid="upload-dropzone"
         aria-disabled={disabled}
       >
         <input {...getInputProps()} aria-label="File upload input" />

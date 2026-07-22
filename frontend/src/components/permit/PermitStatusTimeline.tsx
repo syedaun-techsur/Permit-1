@@ -1,6 +1,5 @@
 import React from 'react';
-import { Check } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import type { ApplicationStatus, LifecycleStage } from '../../types/permit.types';
 
 interface PermitStatusTimelineProps {
@@ -8,6 +7,14 @@ interface PermitStatusTimelineProps {
   currentStatus: ApplicationStatus;
   infoRequestNote?: string;
 }
+
+const STAGE_ORDER: ApplicationStatus[] = [
+  'draft',
+  'submitted',
+  'under_review',
+  'additional_info_needed',
+  'approved',
+];
 
 const STAGE_LABELS: Record<ApplicationStatus, string> = {
   draft: 'Draft',
@@ -18,197 +25,157 @@ const STAGE_LABELS: Record<ApplicationStatus, string> = {
   rejected: 'Rejected',
 };
 
-type StageState = 'completed' | 'current' | 'future' | 'muted-terminal';
-
-function getStageState(
-  status: ApplicationStatus,
+function getStageStatus(
+  stage: ApplicationStatus,
   currentStatus: ApplicationStatus,
-  stages: LifecycleStage[],
-): StageState {
-  const isCompleted = stages.some((s) => s.stage === status);
-  if (isCompleted) return 'completed';
+  stageRecord: LifecycleStage | undefined,
+): 'completed' | 'current' | 'future' {
+  if (stageRecord) return 'completed';
 
-  const isTerminal = status === 'approved' || status === 'rejected';
-  if (isTerminal) {
-    if (currentStatus === 'approved' && status === 'rejected') return 'muted-terminal';
-    if (currentStatus === 'rejected' && status === 'approved') return 'muted-terminal';
+  // Special: approved/rejected are terminal — both are "future" unless reached
+  if (
+    (stage === 'approved' || stage === 'rejected') &&
+    currentStatus !== 'approved' &&
+    currentStatus !== 'rejected'
+  ) {
+    return 'future';
   }
 
-  if (status === currentStatus) return 'current';
+  if (stage === currentStatus) return 'current';
+
+  // Determine if this stage comes before current in the normal flow
+  const stageIdx = STAGE_ORDER.indexOf(stage);
+  const currentIdx = STAGE_ORDER.indexOf(currentStatus);
+  if (stageIdx < currentIdx) return 'completed';
+
   return 'future';
 }
 
-function getStageEntry(status: ApplicationStatus, stages: LifecycleStage[]): LifecycleStage | undefined {
-  return stages.find((s) => s.stage === status);
+interface StageNodeProps {
+  stage: ApplicationStatus;
+  status: 'completed' | 'current' | 'future';
+  stageRecord?: LifecycleStage;
+  isLast?: boolean;
 }
 
-const CompletedIndicator: React.FC = () => (
-  <div className="w-6 h-6 rounded-full bg-brand-primary flex items-center justify-center shrink-0">
-    <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-  </div>
-);
+const StageNode: React.FC<StageNodeProps> = ({ stage, status, stageRecord, isLast }) => {
+  const label = STAGE_LABELS[stage];
+  const enteredAt = stageRecord?.entered_at ? new Date(stageRecord.entered_at) : null;
 
-const CurrentIndicator: React.FC = () => (
-  <div className="relative shrink-0">
-    <div className="w-6 h-6 rounded-full border-2 border-brand-primary bg-white" />
-    <div className="absolute inset-0 rounded-full border-2 border-brand-primary animate-ping opacity-40" />
-  </div>
-);
+  return (
+    <li className="relative flex items-start gap-4">
+      {/* Connector line */}
+      {!isLast && (
+        <div
+          className={`absolute left-3.5 top-7 w-0.5 h-full -translate-x-1/2 ${
+            status === 'completed' ? 'bg-brand-primary' : 'bg-border-default'
+          }`}
+          aria-hidden="true"
+        />
+      )}
 
-const FutureIndicator: React.FC = () => (
-  <div className="w-6 h-6 rounded-full border-2 border-gray-300 bg-white shrink-0" />
-);
+      {/* Stage indicator */}
+      <div
+        className={`relative z-10 flex items-center justify-center w-7 h-7 rounded-full border-2 shrink-0 mt-0.5 ${
+          status === 'completed'
+            ? 'bg-brand-primary border-brand-primary text-white'
+            : status === 'current'
+            ? 'bg-white border-brand-primary ring-4 ring-blue-100'
+            : 'bg-white border-border-default'
+        }`}
+        aria-label={`${label}: ${status}`}
+      >
+        {status === 'completed' && (
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
+        )}
+        {status === 'current' && (
+          <div className="w-2 h-2 rounded-full bg-brand-primary" />
+        )}
+      </div>
 
-const MutedTerminalIndicator: React.FC = () => (
-  <div className="w-6 h-6 rounded-full border-2 border-gray-200 bg-gray-50 shrink-0" />
-);
+      {/* Stage details */}
+      <div className="flex-1 min-w-0 pb-6">
+        <p
+          className={`text-body-sm font-medium ${
+            status === 'future' ? 'text-text-disabled' : 'text-text-primary'
+          }`}
+        >
+          {label}
+          {status === 'current' && (
+            <span className="ml-2 text-caption text-brand-primary font-normal">In Progress</span>
+          )}
+        </p>
+
+        {enteredAt && (
+          <p
+            className="text-caption text-text-secondary mt-0.5"
+            title={format(enteredAt, 'PPpp')}
+          >
+            {formatDistanceToNow(enteredAt, { addSuffix: true })}
+          </p>
+        )}
+      </div>
+    </li>
+  );
+};
 
 export const PermitStatusTimeline: React.FC<PermitStatusTimelineProps> = ({
   stages,
   currentStatus,
   infoRequestNote,
 }) => {
-  // Non-terminal stages (always shown in main flow)
-  const mainStages: ApplicationStatus[] = ['draft', 'submitted', 'under_review', 'additional_info_needed'];
-  // Terminal branch stages
-  const terminalStages: ApplicationStatus[] = ['approved', 'rejected'];
+  const stageMap = new Map<ApplicationStatus, LifecycleStage>();
+  for (const s of stages) {
+    stageMap.set(s.stage, s);
+  }
 
-  const renderIndicator = (state: StageState) => {
-    switch (state) {
-      case 'completed':
-        return <CompletedIndicator />;
-      case 'current':
-        return <CurrentIndicator />;
-      case 'muted-terminal':
-        return <MutedTerminalIndicator />;
-      case 'future':
-      default:
-        return <FutureIndicator />;
-    }
-  };
+  // Build node list: always show draft, submitted, under_review, additional_info_needed
+  // and then show the terminal node (approved or rejected)
+  const isTerminalApproved = currentStatus === 'approved';
+  const isTerminalRejected = currentStatus === 'rejected';
 
-  const renderConnectorLine = (isCompleted: boolean) => (
-    <div
-      className={`ml-3 w-0.5 h-6 ${isCompleted ? 'bg-brand-primary' : 'border-l-2 border-gray-300'}`}
-    />
-  );
+  const coreStages: ApplicationStatus[] = [
+    'draft',
+    'submitted',
+    'under_review',
+    'additional_info_needed',
+  ];
+
+  // Terminal nodes
+  const terminalStages: ApplicationStatus[] =
+    isTerminalRejected ? ['rejected'] : isTerminalApproved ? ['approved'] : ['approved', 'rejected'];
+
+  const allNodes = [...coreStages, ...terminalStages];
 
   return (
-    <div className="flex flex-col" data-testid="permit-status-timeline">
-      {/* Main flow stages */}
-      {mainStages.map((status, idx) => {
-        const state = getStageState(status, currentStatus, stages);
-        const entry = getStageEntry(status, stages);
-        const isCompleted = state === 'completed';
-        const isCurrent = state === 'current';
-        const isLastMain = idx === mainStages.length - 1;
-
-        return (
-          <div key={status}>
-            {/* Stage row */}
-            <div className="flex items-start gap-3" data-testid={`stage-${status}`} data-state={state}>
-              {renderIndicator(state)}
-              <div className="flex-1 min-w-0 pb-1">
-                <div className="flex items-center flex-wrap gap-2">
-                  <span
-                    className={`text-sm font-medium leading-tight ${
-                      isCurrent
-                        ? 'text-brand-primary'
-                        : isCompleted
-                        ? 'text-text-primary'
-                        : 'text-text-secondary'
-                    }`}
-                  >
-                    {STAGE_LABELS[status]}
-                  </span>
-                  {isCurrent && (
-                    <span
-                      className="bg-brand-primary/10 text-brand-primary text-xs px-2 py-0.5 rounded-full"
-                      data-testid="in-progress-pill"
-                    >
-                      In Progress
-                    </span>
-                  )}
-                </div>
-                {entry && (
-                  <p
-                    className="text-sm text-text-secondary mt-0.5 leading-tight"
-                    title={new Date(entry.entered_at).toLocaleString()}
-                  >
-                    {formatDistanceToNow(new Date(entry.entered_at), { addSuffix: true })}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Info request note shown after additional_info_needed stage */}
-            {status === 'additional_info_needed' && infoRequestNote && currentStatus === 'additional_info_needed' && (
-              <div className="ml-9 mt-2 mb-2 p-3 bg-orange-50 border border-orange-300 rounded-lg text-sm text-orange-800">
-                <p className="font-semibold mb-1">Additional Information Requested:</p>
-                <p>{infoRequestNote}</p>
-              </div>
-            )}
-
-            {/* Connector line between stages (not after the last main stage) */}
-            {!isLastMain && (
-              <div className="ml-3 w-0.5 h-5 bg-gradient-to-b from-transparent to-transparent">
-                {renderConnectorLine(isCompleted)}
-              </div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Terminal branching section */}
-      <div className="ml-3 flex items-start gap-0 mt-1">
-        {/* Branch connector line */}
-        <div className="flex flex-col">
-          <div className="w-0.5 h-4 bg-gray-300" />
-          {/* Fork: two lines splitting from one */}
+    <div data-testid="timeline-panel">
+      {/* Info request note */}
+      {currentStatus === 'additional_info_needed' && infoRequestNote && (
+        <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
+          <p className="text-body-sm font-medium text-orange-800 mb-1">Additional Information Required</p>
+          <p className="text-body-sm text-orange-700">{infoRequestNote}</p>
         </div>
-      </div>
+      )}
 
-      {/* Terminal stages: approved and rejected as branching nodes */}
-      <div className="ml-4 space-y-2" data-testid="terminal-stages">
-        {terminalStages.map((status, idx) => {
-          const state = getStageState(status, currentStatus, stages);
-          const entry = getStageEntry(status, stages);
-          const isCompleted = state === 'completed';
-          const isMuted = state === 'muted-terminal';
-          const prefix = idx === 0 ? '├─' : '└─';
+      <ol className="list-none">
+        {allNodes.map((stage, index) => {
+          const stageRecord = stageMap.get(stage);
+          const nodeStatus = getStageStatus(stage, currentStatus, stageRecord);
+          const isLast = index === allNodes.length - 1;
 
           return (
-            <div key={status} className="flex items-start gap-2" data-testid={`stage-${status}`} data-state={state}>
-              <span className="text-gray-400 text-xs leading-6 select-none">{prefix}</span>
-              {renderIndicator(state)}
-              <div className="flex-1 min-w-0">
-                <span
-                  className={`text-sm font-medium leading-tight ${
-                    isCompleted
-                      ? status === 'approved'
-                        ? 'text-green-700'
-                        : 'text-red-700'
-                      : isMuted
-                      ? 'text-gray-300 line-through'
-                      : 'text-text-secondary'
-                  }`}
-                  data-testid={`${status}-label`}
-                >
-                  {STAGE_LABELS[status]}
-                </span>
-                {entry && (
-                  <p
-                    className="text-sm text-text-secondary mt-0.5"
-                    title={new Date(entry.entered_at).toLocaleString()}
-                  >
-                    {formatDistanceToNow(new Date(entry.entered_at), { addSuffix: true })}
-                  </p>
-                )}
-              </div>
-            </div>
+            <StageNode
+              key={stage}
+              stage={stage}
+              status={nodeStatus}
+              stageRecord={stageRecord}
+              isLast={isLast}
+            />
           );
         })}
-      </div>
+      </ol>
     </div>
   );
 };

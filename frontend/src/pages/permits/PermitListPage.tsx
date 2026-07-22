@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { permitsApi } from '../../api/permits.api';
 import { usePermitsStore } from '../../store/permits.store';
 import { PermitCard } from '../../components/permit/PermitCard';
+import { AppShell } from '../../components/layout/AppShell';
 import type { ApplicationStatus } from '../../types/permit.types';
 
 type FilterTab = 'all' | ApplicationStatus;
@@ -63,7 +64,8 @@ export function PermitListPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <AppShell title="My Applications">
+    <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-heading-xl text-text-primary font-bold">My Applications</h1>
@@ -141,5 +143,6 @@ export function PermitListPage() {
         </div>
       )}
     </div>
+    </AppShell>
   );
 }

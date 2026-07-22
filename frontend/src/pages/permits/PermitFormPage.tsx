@@ -9,6 +9,7 @@ import { useUiStore } from '../../store/ui.store';
 import { PermitFormFields } from '../../components/permit/PermitFormFields';
 import { DocumentUploadZone } from '../../components/document/DocumentUploadZone';
 import { Button } from '../../components/ui/Button';
+import { AppShell } from '../../components/layout/AppShell';
 import type { PermitApplication, PermitType } from '../../types/permit.types';
 
 // ---------- Zod validation schema ----------
@@ -421,23 +422,28 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
     }
   };
 
+  const formTitle = mode === 'create' ? 'New Application' : 'Edit Application';
+
   if (isLoadingExisting) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="h-8 bg-gray-100 animate-pulse rounded mb-4 w-1/3" />
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-gray-100 animate-pulse rounded" />
-          ))}
+      <AppShell title={formTitle}>
+        <div className="max-w-2xl mx-auto">
+          <div className="h-8 bg-gray-100 animate-pulse rounded mb-4 w-1/3" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-gray-100 animate-pulse rounded" />
+            ))}
+          </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   const formValues = getValues();
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <AppShell title={formTitle}>
+    <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center mb-6">
         <h1 className="text-heading-xl text-text-primary font-bold">
@@ -534,5 +540,6 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
         </form>
       </FormProvider>
     </div>
+    </AppShell>
   );
 }

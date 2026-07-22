@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-dashboards-02-PLAN.md
-last_updated: "2026-07-22T23:32:09.684Z"
+stopped_at: Completed 04-dashboards-01-PLAN.md
+last_updated: "2026-07-22T23:33:25.857Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 22
-  completed_plans: 16
+  completed_plans: 17
   percent: 14
 ---
 
@@ -65,6 +65,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 03-review-workflow P03 | 8min | 2 tasks | 11 files |
 | Phase 03-review-workflow P04 | 7min | 2 tasks | 12 files |
 | Phase 04-dashboards P02 | 2min | 2 tasks | 10 files |
+| Phase 04-dashboards P01 | 3min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Recent decisions affecting current work:
 - [Phase 03-review-workflow]: MessagePanel stub created in 03-04 since 03-03 files existed but no SUMMARY yet; implements full interface contract
 - [Phase 03-review-workflow]: NavBar role-based navigation: reviewer/admin sees Review Queue link; applicant sees My Applications/New Application
 - [Phase 04-dashboards]: Used apiClient from client.ts (not axiosInstance) — matches Phase 1 naming convention; ApplicationStatus instead of PermitStatus; Notification from message.types.ts; Tailwind tokens use brand-primary not primary-*
+- [Phase 04-dashboards]: SQL adapted to actual DB schema: message_reads join table instead of is_read_by_applicant/is_read_by_reviewer columns; audit_log table (not audit_logs) with occurred_at; submitted_at not submission_date; no permit_status_history table
+- [Phase 04-dashboards]: Dashboard service partial failure resilience: per-query try/catch returns zeros/empty arrays on failure preventing 500s from non-critical aggregate errors
 
 ### Pending Todos
 
@@ -116,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T23:32:09.683Z
-Stopped at: Completed 04-dashboards-02-PLAN.md
+Last session: 2026-07-22T23:33:25.855Z
+Stopped at: Completed 04-dashboards-01-PLAN.md
 Resume file: None

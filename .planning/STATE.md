@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-review-workflow-03-PLAN.md
-last_updated: "2026-07-22T22:38:41.412Z"
+stopped_at: Completed 04-dashboards-02-PLAN.md
+last_updated: "2026-07-22T23:32:09.684Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 22
-  completed_plans: 14
+  completed_plans: 16
   percent: 14
 ---
 
@@ -64,6 +64,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 03-review-workflow P01 | 10min | 2 tasks | 16 files |
 | Phase 03-review-workflow P03 | 8min | 2 tasks | 11 files |
 | Phase 03-review-workflow P04 | 7min | 2 tasks | 12 files |
+| Phase 04-dashboards P02 | 2min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,7 @@ Recent decisions affecting current work:
 - [Phase 03-review-workflow]: Tailwind design tokens: bg-primary-500/bg-surface-100 in plan docs map to actual config values bg-brand-primary/bg-surface-sidebar; plan used non-existent class names
 - [Phase 03-review-workflow]: MessagePanel stub created in 03-04 since 03-03 files existed but no SUMMARY yet; implements full interface contract
 - [Phase 03-review-workflow]: NavBar role-based navigation: reviewer/admin sees Review Queue link; applicant sees My Applications/New Application
+- [Phase 04-dashboards]: Used apiClient from client.ts (not axiosInstance) — matches Phase 1 naming convention; ApplicationStatus instead of PermitStatus; Notification from message.types.ts; Tailwind tokens use brand-primary not primary-*
 
 ### Pending Todos
 
@@ -114,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T22:38:41.411Z
-Stopped at: Completed 03-review-workflow-03-PLAN.md
+Last session: 2026-07-22T23:32:09.683Z
+Stopped at: Completed 04-dashboards-02-PLAN.md
 Resume file: None

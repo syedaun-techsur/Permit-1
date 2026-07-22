@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class InitialSchema1001 implements MigrationInterface {
-  name = 'InitialSchema1001';
+export class InitialSchema1700000000001 implements MigrationInterface {
+  name = 'InitialSchema1700000000001';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // user_role enum

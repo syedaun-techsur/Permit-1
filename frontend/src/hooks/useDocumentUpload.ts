@@ -11,6 +11,8 @@ const ALLOWED_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ] as const;
 
+type AllowedMimeType = typeof ALLOWED_MIME_TYPES[number];
+
 // Max file size: 25 MB in bytes
 const MAX_FILE_SIZE_BYTES = 26214400;
 
@@ -74,7 +76,7 @@ export function useDocumentUpload({
       const filename = file.name;
 
       // Client-side validation — before any network request
-      if (!ALLOWED_MIME_TYPES.includes(file.type as typeof ALLOWED_MIME_TYPES[number])) {
+      if (!ALLOWED_MIME_TYPES.includes(file.type as AllowedMimeType)) {
         updateQueueItem(filename, { status: 'error', error: 'Invalid file type' });
         onUploadError?.(filename, 'Invalid file type');
         return;
@@ -87,7 +89,10 @@ export function useDocumentUpload({
       }
 
       if (filename.length > MAX_FILENAME_LENGTH) {
-        updateQueueItem(filename, { status: 'error', error: 'Filename too long (max 255 characters)' });
+        updateQueueItem(filename, {
+          status: 'error',
+          error: 'Filename too long (max 255 characters)',
+        });
         onUploadError?.(filename, 'Filename too long');
         return;
       }
@@ -105,7 +110,7 @@ export function useDocumentUpload({
         const { uploadUrl, storageKey } = uploadUrlResponse.data;
 
         // c) PUT uploadUrl with file binary using plain axios (NOT apiClient)
-        // MinIO presigned URL includes auth in query params — adding JWT header would break it
+        // MinIO presigned URL includes auth in query params — adding JWT Authorization header would break it
         await axios.put(uploadUrl, file, {
           headers: { 'Content-Type': file.type },
           onUploadProgress: (e) => {

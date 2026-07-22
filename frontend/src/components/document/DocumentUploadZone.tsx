@@ -4,7 +4,7 @@ import { UploadCloud } from 'lucide-react';
 import { useDocumentUpload } from '../../hooks/useDocumentUpload';
 import { UploadProgress } from './UploadProgress';
 import { DocumentList } from './DocumentList';
-import type { ApplicationStatus, UploadFileState } from '../../types/document.types';
+import type { ApplicationStatus } from '../../types/document.types';
 
 interface DocumentUploadZoneProps {
   applicationId: string;
@@ -38,30 +38,14 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-      // Build error entries for react-dropzone rejected files (type/size validation by dropzone)
-      if (rejectedFiles.length > 0) {
-        // These are caught by dropzone itself; our hook will also validate
-        // Just upload accepted files — hook validates client-side again
-      }
+      // Upload accepted files via hook (hook also does client-side validation)
       if (acceptedFiles.length > 0) {
         uploadFiles(acceptedFiles);
       }
-      // Handle rejected files from dropzone (size/type rejected by dropzone config)
+      // For dropzone-rejected files (size/type pre-filtered by dropzone config),
+      // pass them through the hook so they appear in the queue with error state
       if (rejectedFiles.length > 0) {
-        // Create error states manually for dropzone-rejected files
-        const errorItems: UploadFileState[] = rejectedFiles.map((rf: FileRejection) => {
-          const errors = rf.errors.map((e: { message: string }) => e.message).join('; ');
-          return {
-            file: rf.file,
-            filename: rf.file.name,
-            status: 'error',
-            progress: 0,
-            error: errors,
-          };
-        });
-        // Pass them through the upload queue as errors
         uploadFiles(rejectedFiles.map((rf) => rf.file));
-        void errorItems; // referenced above; actual validation via hook
       }
     },
     [uploadFiles],
@@ -74,7 +58,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
     maxSize: MAX_FILE_SIZE,
     multiple: true,
     disabled,
-    onDrop: (acceptedFiles, rejectedFiles) => onDrop(acceptedFiles, rejectedFiles),
+    onDrop,
     noClick: true, // We handle click via the Browse Files button
   });
 

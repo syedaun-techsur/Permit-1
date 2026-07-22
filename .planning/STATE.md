@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-applicant-core-01-PLAN.md
-last_updated: "2026-07-22T19:24:44.151Z"
+stopped_at: Completed 02-applicant-core-03-PLAN.md
+last_updated: "2026-07-22T19:36:59.622Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 22
-  completed_plans: 6
+  completed_plans: 7
   percent: 14
 ---
 
@@ -56,6 +56,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 01-foundation P02 | 8min | 2 tasks | 21 files |
 | Phase 02-applicant-core P02 | 3min | 2 tasks | 10 files |
 | Phase 02-applicant-core P01 | 5min | 2 tasks | 19 files |
+| Phase 02-applicant-core P03 | 7min | 2 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Recent decisions affecting current work:
 - [Phase 02-applicant-core]: Cursor pagination for permit list uses base64(updated_at ISO) — efficient, avoids OFFSET degradation
 - [Phase 02-applicant-core]: AuditService.createEntry() wrapped in try/catch — audit failures never block application workflow
 - [Phase 02-applicant-core]: applicant_id always set from JWT req.user.id in service layer, never from DTO body — T-02-04 STRIDE threat mitigated
+- [Phase 02-applicant-core]: PermitFormPage Step 2 integrates DocumentUploadZone from 02-02 directly (not placeholder), enabling correct document attachment workflow
+- [Phase 02-applicant-core]: Auto-save pattern: 2s debounce on useWatch, exponential backoff retry (1s/2s/4s x3), warning toast after 3 failures
 
 ### Pending Todos
 
@@ -90,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T19:24:44.150Z
-Stopped at: Completed 02-applicant-core-01-PLAN.md
+Last session: 2026-07-22T19:36:59.621Z
+Stopped at: Completed 02-applicant-core-03-PLAN.md
 Resume file: None

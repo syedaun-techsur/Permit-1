@@ -11,6 +11,7 @@ const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPasswordPage').t
 
 // Permit pages
 const PermitListPage = lazy(() => import('../pages/permits/PermitListPage').then(m => ({ default: m.PermitListPage })));
+const PermitDetailPage = lazy(() => import('../pages/permits/PermitDetailPage').then(m => ({ default: m.PermitDetailPage })));
 const PermitFormPageCreate = lazy(() =>
   import('../pages/permits/PermitFormPage').then(m => ({ default: () => m.PermitFormPage({ mode: 'create' }) }))
 );
@@ -54,6 +55,7 @@ export function AppRouter() {
         <Route path="/permits" element={<ProtectedRoute><PermitListPage /></ProtectedRoute>} />
         <Route path="/permits/new" element={<ProtectedRoute><PermitFormPageCreate /></ProtectedRoute>} />
         <Route path="/permits/:id/edit" element={<ProtectedRoute><PermitFormPageEdit /></ProtectedRoute>} />
+        <Route path="/permits/:id" element={<ProtectedRoute><PermitDetailPage /></ProtectedRoute>} />
 
         {/* Protected routes */}
         <Route path="/applicant/*" element={<ProtectedRoute><ApplicantDashboard /></ProtectedRoute>} />

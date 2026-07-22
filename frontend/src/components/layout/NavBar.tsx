@@ -180,21 +180,39 @@ export const NavBar: React.FC = () => {
           aria-label="Mobile navigation"
         >
           <div className="max-w-7xl mx-auto px-4 py-3 space-y-1">
-            <NavLink
-              to="/permits"
-              className={navLinkClass}
-              onClick={() => setMobileOpen(false)}
-            >
-              My Applications
-            </NavLink>
-            <NavLink
-              to="/permits/new"
-              className={navLinkClass}
-              onClick={() => setMobileOpen(false)}
-            >
-              <Plus className="w-4 h-4" aria-hidden="true" />
-              New Application
-            </NavLink>
+            {/* Reviewer/Admin: Review Queue link */}
+            {(user?.role === UserRole.REVIEWER || user?.role === UserRole.ADMIN) && (
+              <NavLink
+                to="/review/queue"
+                data-testid="nav-review-queue"
+                className={navLinkClass}
+                onClick={() => setMobileOpen(false)}
+              >
+                <ClipboardList className="w-4 h-4" aria-hidden="true" />
+                Review Queue
+              </NavLink>
+            )}
+
+            {/* Applicant links */}
+            {(!user?.role || user.role === UserRole.APPLICANT) && (
+              <>
+                <NavLink
+                  to="/permits"
+                  className={navLinkClass}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  My Applications
+                </NavLink>
+                <NavLink
+                  to="/permits/new"
+                  className={navLinkClass}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Plus className="w-4 h-4" aria-hidden="true" />
+                  New Application
+                </NavLink>
+              </>
+            )}
 
             {/* Divider */}
             <div className="border-t border-border-default pt-3 mt-3">

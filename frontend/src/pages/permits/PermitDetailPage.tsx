@@ -1,9 +1,15 @@
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { usePermit } from '../../hooks/usePermit';
+import { useAuthStore } from '../../store/auth.store';
+import { useUiStore } from '../../store/ui.store';
+import { permitsApi } from '../../api/permits.api';
+import type { PermitApplication } from '../../types/permit.types';
 import { PermitStatusBadge } from '../../components/permit/PermitStatusBadge';
 import { PermitStatusTimeline } from '../../components/permit/PermitStatusTimeline';
 import { DocumentList } from '../../components/document/DocumentList';
+import { MessagePanel } from '../../components/messaging/MessagePanel';
 import { AppShell } from '../../components/layout/AppShell';
 
 // ─── Skeleton loading components ─────────────────────────────────────────────
@@ -75,12 +81,106 @@ const PERMIT_TYPE_LABELS: Record<string, string> = {
   signage: 'Signage',
 };
 
+// ─── Respond to Info Request form ────────────────────────────────────────────
+
+interface RespondToInfoFormProps {
+  permit: PermitApplication;
+  onSuccess: (updated: PermitApplication) => void;
+}
+
+function RespondToInfoForm({ permit, onSuccess }: RespondToInfoFormProps) {
+  const { addToast } = useUiStore();
+  const [response, setResponse] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const MAX_CHARS = 2000;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const updated = await permitsApi.respondToInfo(permit.id, response.trim() || undefined);
+      onSuccess(updated);
+      setResponse('');
+      addToast('success', 'Response submitted — your application is back under review.');
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } }).response?.data?.message ??
+        'Failed to submit response. Please try again.';
+      addToast('error', msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <section
+      className="bg-white rounded-xl border border-amber-200 p-6"
+      data-testid="respond-to-info-section"
+    >
+      <h2 className="text-base font-semibold text-text-primary mb-3">
+        Additional Information Required
+      </h2>
+
+      {/* Reviewer's request */}
+      {permit.info_request_note && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded-md">
+          <p className="text-xs font-medium text-amber-800 mb-1">Reviewer's request:</p>
+          <p className="text-sm text-amber-900">{permit.info_request_note}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="mb-3">
+          <label
+            htmlFor="respond-textarea"
+            className="block text-sm font-medium text-text-primary mb-1"
+          >
+            Your Response
+          </label>
+          <p className="text-xs text-text-secondary mb-2">
+            You may also upload new supporting documents above.
+          </p>
+          <textarea
+            id="respond-textarea"
+            data-testid="respond-textarea"
+            value={response}
+            onChange={(e) => setResponse(e.target.value)}
+            rows={4}
+            maxLength={MAX_CHARS}
+            placeholder="Provide your response or explanation here…"
+            className="w-full border border-border-default rounded-md px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled focus:outline-none focus:ring-2 focus:ring-brand-primary resize-y"
+          />
+          <p className="text-xs text-text-secondary mt-1 text-right">
+            {response.length}/{MAX_CHARS}
+          </p>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          data-testid="submit-response-btn"
+          className="inline-flex items-center justify-center gap-2 font-medium rounded-md text-body-sm px-4 py-2 h-10 bg-brand-primary text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-brand-primary transition-all duration-150 active:scale-[0.98]"
+        >
+          {isSubmitting ? (
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : null}
+          Submit Response
+        </button>
+      </form>
+    </section>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function PermitDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { permit, lifecycle, isLoading, error } = usePermit(id ?? '');
+  const { user } = useAuthStore();
+  const { permit: fetchedPermit, lifecycle, isLoading, error } = usePermit(id ?? '');
+  const [localPermit, setLocalPermit] = useState<PermitApplication | null>(null);
+
+  const permit = localPermit ?? fetchedPermit;
 
   const referenceTitle = permit?.reference_number ?? 'Permit Details';
 
@@ -214,13 +314,33 @@ export function PermitDetailPage() {
               />
             </section>
 
-            {/* Messaging Panel — stub for Phase 2 */}
-            <section className="bg-white rounded-xl border p-6" data-testid="messaging-panel">
-              <h2 className="text-base font-semibold text-text-primary mb-4">Messages</h2>
-              <p className="text-text-secondary text-sm text-center py-8" data-testid="messaging-stub">
-                Messaging will be available once your application is under review.
-              </p>
-            </section>
+            {/* Respond to Info Request — only visible when additional_info_needed */}
+            {permit.status === 'additional_info_needed' && (
+              <RespondToInfoForm
+                permit={permit}
+                onSuccess={(updated) => setLocalPermit(updated)}
+              />
+            )}
+
+            {/* Messaging Panel */}
+            {user && permit.status !== 'draft' && (
+              <section className="bg-white rounded-xl border p-6" data-testid="messaging-panel">
+                <MessagePanel
+                  applicationId={permit.id}
+                  currentUserId={user.id}
+                  currentUserRole={user.role}
+                  isReviewer={false}
+                />
+              </section>
+            )}
+            {permit.status === 'draft' && (
+              <section className="bg-white rounded-xl border p-6" data-testid="messaging-panel">
+                <h2 className="text-base font-semibold text-text-primary mb-4">Messages</h2>
+                <p className="text-text-secondary text-sm text-center py-8" data-testid="messaging-stub">
+                  Messaging will be available once your application is under review.
+                </p>
+              </section>
+            )}
           </div>
 
           {/* Right column: lifecycle timeline (1/3 width on desktop) */}

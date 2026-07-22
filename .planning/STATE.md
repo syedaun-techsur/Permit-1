@@ -2,15 +2,15 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 01-foundation-03-PLAN.md
-last_updated: "2026-07-22T16:40:30.352Z"
-last_activity: 2026-07-21 — Roadmap created; all 5 phases defined with success criteria
+status: executing
+stopped_at: Completed 01-foundation-01-PLAN.md
+last_updated: "2026-07-22T16:46:07.838Z"
+last_activity: "2026-07-22 — Plan 01-03 complete: design system tokens + 7 UI primitives + E2E tests"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 22
-  completed_plans: 1
+  completed_plans: 2
   percent: 5
 ---
 
@@ -30,7 +30,7 @@ Plan: 3 of 4 in current phase (01-03 complete)
 Status: In progress
 Last activity: 2026-07-22 — Plan 01-03 complete: design system tokens + 7 UI primitives + E2E tests
 
-Progress: [█░░░░░░░░░] 5%
+Progress: [█░░░░░░░░░] 9%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [█░░░░░░░░░] 5%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-foundation P01 | 10min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ Recent decisions affecting current work:
 - Scope: Web-first (responsive), no payments, no native app, no AI/ML, English-only for v1
 - [Phase 01-foundation]: Design tokens use semantic names as Tailwind classes (bg-brand-primary, text-text-primary) — not default Tailwind blue/gray
 - [Phase 01-foundation]: React 17+ JSX transform configured — no explicit React imports needed in components that don't use React namespace
+- [Phase 01-foundation]: TypeORM migration class names require 13-digit JS timestamp suffix (e.g. InitialSchema1700000000001)
+- [Phase 01-foundation]: MinIO image lacks curl/wget; use /usr/bin/mc ready local for healthcheck
+- [Phase 01-foundation]: NestJS main.ts must bind 0.0.0.0 (not localhost) per sandbox runtime contract §2
 
 ### Pending Todos
 
@@ -76,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T16:40:30.350Z
-Stopped at: Completed 01-foundation-03-PLAN.md
+Last session: 2026-07-22T16:46:07.836Z
+Stopped at: Completed 01-foundation-01-PLAN.md
 Resume file: None

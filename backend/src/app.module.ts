@@ -4,6 +4,10 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { DocumentsModule } from './documents/documents.module';
 import { HealthController } from './health/health.controller';
+import { PermitsModule } from './permits/permits.module';
+import { LifecycleModule } from './lifecycle/lifecycle.module';
+import { AuditModule } from './audit/audit.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -11,6 +15,10 @@ import { HealthController } from './health/health.controller';
     DatabaseModule,
     AuthModule,
     DocumentsModule,
+    PermitsModule,
+    LifecycleModule,
+    AuditModule,
+    NotificationsModule,
   ],
   controllers: [HealthController],
 })

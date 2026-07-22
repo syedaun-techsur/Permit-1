@@ -40,7 +40,7 @@ Plans:
 - [ ] 01-04-PLAN.md — React auth pages + Zustand store + Axios JWT interceptors + protected routing
 
 ### Phase 2: Applicant Core
-**Status**: executing
+**Status**: awaiting verify
 **Goal**: Applicants can submit a permit application, manage their supporting documents, and see their application's status on a visual lifecycle timeline
 **Depends on**: Phase 1
 **Requirements**: PERM-01, PERM-02, PERM-03, PERM-04, DOCS-01, DOCS-02, DOCS-03, DOCS-04, STAT-01, STAT-02, UX-01, UX-03, UX-04

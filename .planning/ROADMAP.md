@@ -83,6 +83,7 @@ Plans:
 - [ ] 03-05-PLAN.md — Playwright E2E: full lifecycle (approve + reject) + messaging cross-user + notification display + Phase 2 regression
 
 ### Phase 4: Dashboards
+**Status**: In Progress
 **Goal**: Every role lands on a dashboard that immediately surfaces their most important information — active permits, pending actions, status distribution, and unread messages
 **Depends on**: Phase 3
 **Requirements**: DASH-01, DASH-02, DASH-03, DASH-04

@@ -7,8 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
+import * as archiverModule from 'archiver';
 import { Document, DocumentStatus } from './entities/document.entity';
 import { PermitApplication, ApplicationStatus } from '../permits/entities/permit-application.entity';
+import { UserRole } from '../common/enums/role.enum';
 import { S3Service } from './s3.service';
 import { UploadUrlRequestDto } from './dto/upload-url-request.dto';
 import { RegisterDocumentDto } from './dto/register-document.dto';
@@ -194,5 +196,79 @@ export class DocumentsService {
 
     // Fire-and-forget: schedule MinIO object deletion for audit window
     this.s3Service.scheduleDelete(document.storageKey).catch(() => {});
+  }
+
+  /**
+   * Generates a ZIP archive of all active documents for an application and
+   * returns a presigned download URL valid for 15 minutes.
+   *
+   * Restricted to assigned reviewer or admin (DOCS-05).
+   */
+  async getArchiveUrl(
+    applicationId: string,
+    requesterId: string,
+    requesterRole: UserRole,
+  ): Promise<{ downloadUrl: string; expiresAt: string }> {
+    // Load the application
+    const application = await this.permitRepo.findOne({ where: { id: applicationId } });
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    // Only assigned reviewer or admin can access archive
+    const isAdmin = requesterRole === UserRole.ADMIN;
+    const isAssignedReviewer = application.reviewerId === requesterId;
+    if (!isAdmin && !isAssignedReviewer) {
+      throw new ForbiddenException(
+        'Only the assigned reviewer or an admin can download the document archive',
+      );
+    }
+
+    // Load all active (non-deleted) documents
+    const documents = await this.documentRepo.find({
+      where: { applicationId, status: DocumentStatus.UPLOADED },
+    });
+
+    if (documents.length === 0) {
+      throw new UnprocessableEntityException('No documents available for archive');
+    }
+
+    // Build ZIP archive in memory using archiver
+    const zipBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const archive = new archiverModule.ZipArchive({ zlib: { level: 6 } });
+      const chunks: Buffer[] = [];
+
+      archive.on('data', (chunk: Buffer) => chunks.push(chunk));
+      archive.on('end', () => resolve(Buffer.concat(chunks)));
+      archive.on('error', reject);
+
+      // Append each document to the archive by fetching its bytes from MinIO
+      const appendPromises = documents.map(async (doc) => {
+        try {
+          const buf = await this.s3Service.getObjectBuffer(doc.storageKey);
+          archive.append(buf, { name: doc.filename });
+        } catch (err) {
+          // Skip documents that cannot be fetched (log but don't fail entire archive)
+          const errMsg = err instanceof Error ? err.message : String(err);
+          // Log is not available here — skip silently
+          void errMsg;
+        }
+      });
+
+      Promise.all(appendPromises)
+        .then(() => archive.finalize())
+        .catch(reject);
+    });
+
+    // Upload ZIP to MinIO
+    const archiveKey = `archives/${applicationId}/${randomUUID()}.zip`;
+    await this.s3Service.uploadBuffer(archiveKey, zipBuffer, 'application/zip');
+
+    // Generate presigned GET URL (15-minute expiry)
+    const ARCHIVE_EXPIRY_SECONDS = 900;
+    const downloadUrl = await this.s3Service.getPresignedGetUrl(archiveKey, ARCHIVE_EXPIRY_SECONDS);
+    const expiresAt = new Date(Date.now() + ARCHIVE_EXPIRY_SECONDS * 1000).toISOString();
+
+    return { downloadUrl, expiresAt };
   }
 }

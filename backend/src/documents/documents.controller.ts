@@ -12,14 +12,35 @@ import {
 } from '@nestjs/common';
 import { ParseUUIDPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../common/enums/role.enum';
 import { DocumentsService } from './documents.service';
 import { UploadUrlRequestDto } from './dto/upload-url-request.dto';
 import { RegisterDocumentDto } from './dto/register-document.dto';
 
+interface AuthenticatedRequest {
+  user: { id: string; email: string; role: UserRole };
+}
+
 @Controller('permits/:id/documents')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
+
+  /**
+   * GET /permits/:id/documents/archive
+   * Returns a presigned ZIP download URL valid for 15 minutes.
+   * Reviewer/admin only. MUST be declared BEFORE /:docId/url.
+   */
+  @Get('archive')
+  @Roles(UserRole.REVIEWER, UserRole.ADMIN)
+  async getArchiveUrl(
+    @Param('id', ParseUUIDPipe) applicationId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.documentsService.getArchiveUrl(applicationId, req.user.id, req.user.role);
+  }
 
   /**
    * POST /permits/:id/documents/upload-url
@@ -29,7 +50,7 @@ export class DocumentsController {
   async getUploadUrl(
     @Param('id', ParseUUIDPipe) applicationId: string,
     @Body() dto: UploadUrlRequestDto,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.documentsService.getUploadUrl(req.user.id, applicationId, dto);
   }
@@ -43,7 +64,7 @@ export class DocumentsController {
   async register(
     @Param('id', ParseUUIDPipe) applicationId: string,
     @Body() dto: RegisterDocumentDto,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.documentsService.registerDocument(
       req.user.id,
@@ -59,7 +80,7 @@ export class DocumentsController {
   @Get()
   async list(
     @Param('id', ParseUUIDPipe) applicationId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.documentsService.listDocuments(req.user.id, applicationId);
   }
@@ -72,7 +93,7 @@ export class DocumentsController {
   async getUrl(
     @Param('id', ParseUUIDPipe) applicationId: string,
     @Param('docId', ParseUUIDPipe) docId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.documentsService.getDocumentUrl(
       req.user.id,
@@ -90,7 +111,7 @@ export class DocumentsController {
   async remove(
     @Param('id', ParseUUIDPipe) applicationId: string,
     @Param('docId', ParseUUIDPipe) docId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     await this.documentsService.softDelete(req.user.id, applicationId, docId);
     return { message: 'Document deleted successfully' };

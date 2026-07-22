@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { AppDataSource } from './data-source';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 const SEED_USERS = [
   {

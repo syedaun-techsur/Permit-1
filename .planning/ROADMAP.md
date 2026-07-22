@@ -63,7 +63,7 @@ Plans:
 - [ ] 02-06-PLAN.md — AppShell + NavBar responsive + notification badge + 375px E2E tests + interactive state tests (UX-01/03/04)
 
 ### Phase 3: Review Workflow
-**Status**: awaiting verify
+**Status**: executing
 **Goal**: Reviewers can manage their assigned applications end-to-end — advancing, requesting information, deciding — while applicants and reviewers can communicate through an integrated messaging panel
 **Depends on**: Phase 2
 **Requirements**: PERM-05, PERM-06, DOCS-05, STAT-03, STAT-04, STAT-05, STAT-06, STAT-07, MSG-01, MSG-02, MSG-03, MSG-04

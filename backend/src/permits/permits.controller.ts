@@ -103,6 +103,7 @@ export class PermitsController {
 
   // POST /permits/:id/actions/begin-review — reviewer starts review
   @Post(':id/actions/begin-review')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(RolesGuard)
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
   async beginReview(
@@ -114,6 +115,7 @@ export class PermitsController {
 
   // POST /permits/:id/actions/request-info — reviewer requests additional info
   @Post(':id/actions/request-info')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(RolesGuard)
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
   async requestInfo(
@@ -126,6 +128,7 @@ export class PermitsController {
 
   // POST /permits/:id/actions/respond-to-info — applicant responds to info request
   @Post(':id/actions/respond-to-info')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(RolesGuard)
   @Roles(UserRole.APPLICANT)
   async respondToInfo(
@@ -138,6 +141,7 @@ export class PermitsController {
 
   // POST /permits/:id/actions/decide — reviewer approves or rejects
   @Post(':id/actions/decide')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(RolesGuard)
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
   async decide(

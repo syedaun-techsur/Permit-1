@@ -7,6 +7,7 @@ import { PermitsService } from './permits.service';
 import { LifecycleModule } from '../lifecycle/lifecycle.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from '../auth/auth.module';
     LifecycleModule,
     AuditModule,
     AuthModule,
+    NotificationsModule,
   ],
   controllers: [PermitsController],
   providers: [PermitsService],

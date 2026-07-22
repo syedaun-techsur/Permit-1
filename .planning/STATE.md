@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-applicant-core-05-PLAN.md
-last_updated: "2026-07-22T19:50:32.859Z"
+stopped_at: Completed 03-review-workflow-03-PLAN.md
+last_updated: "2026-07-22T22:38:41.412Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 22
-  completed_plans: 10
+  completed_plans: 14
   percent: 14
 ---
 
@@ -60,6 +60,10 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 02-applicant-core P04 | 9min | 2 tasks | 8 files |
 | Phase 02-applicant-core P05 | 4min | 2 tasks | 4 files |
 | Phase 02-applicant-core P06 | 7min | 2 tasks | 10 files |
+| Phase 03-review-workflow P02 | 8min | 2 tasks | 17 files |
+| Phase 03-review-workflow P01 | 10min | 2 tasks | 16 files |
+| Phase 03-review-workflow P03 | 8min | 2 tasks | 11 files |
+| Phase 03-review-workflow P04 | 7min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -89,6 +93,16 @@ Recent decisions affecting current work:
 - [Phase 02-applicant-core]: Promise.allSettled for parallel batch uploads — individual file errors don't abort other uploads in the same batch
 - [Phase 02-applicant-core]: PermitStatusTimeline uses data-testid + data-state attributes for Playwright test targeting of stage states
 - [Phase 02-applicant-core]: NavBar implemented as separate component rendered by AppShell; document.title managed in AppShell via useEffect + title prop
+- [Phase 03-review-workflow]: archiver npm exports ZipArchive class not factory function; use new archiverModule.ZipArchive() pattern
+- [Phase 03-review-workflow]: Route ordering: static routes (unread-count, read-all, archive) declared before dynamic params to prevent NestJS param conflicts
+- [Phase 03-review-workflow]: S3Service exported from DocumentsModule so MessagesModule can inject it for attachment presigned URLs
+- [Phase 03-review-workflow]: Action endpoints return HTTP 200 (not 201) — state transitions update existing resource via @HttpCode(HttpStatus.OK)
+- [Phase 03-review-workflow]: beginReview() accepts submitted OR additional_info_needed — allows re-review after info response
+- [Phase 03-review-workflow]: jest.config.js updated with esModuleInterop + transformIgnorePatterns for archiver ESM package compatibility
+- [Phase 03-review-workflow]: MessagePanel uses separate MessageBubble and MessageComposer sub-components (not inline) for testability and reuse in both applicant and reviewer pages
+- [Phase 03-review-workflow]: Tailwind design tokens: bg-primary-500/bg-surface-100 in plan docs map to actual config values bg-brand-primary/bg-surface-sidebar; plan used non-existent class names
+- [Phase 03-review-workflow]: MessagePanel stub created in 03-04 since 03-03 files existed but no SUMMARY yet; implements full interface contract
+- [Phase 03-review-workflow]: NavBar role-based navigation: reviewer/admin sees Review Queue link; applicant sees My Applications/New Application
 
 ### Pending Todos
 
@@ -100,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T19:47:07.155Z
-Stopped at: Completed 02-applicant-core-05-PLAN.md
+Last session: 2026-07-22T22:38:41.411Z
+Stopped at: Completed 03-review-workflow-03-PLAN.md
 Resume file: None

@@ -8,6 +8,7 @@ import { PermitsModule } from './permits/permits.module';
 import { LifecycleModule } from './lifecycle/lifecycle.module';
 import { AuditModule } from './audit/audit.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     LifecycleModule,
     AuditModule,
     NotificationsModule,
+    MessagesModule,
   ],
   controllers: [HealthController],
 })

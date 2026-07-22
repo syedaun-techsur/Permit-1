@@ -51,6 +51,37 @@ export class S3Service {
   }
 
   /**
+   * Uploads a Buffer directly to MinIO at the given key.
+   * Used for server-generated artifacts like ZIP archives.
+   */
+  async uploadBuffer(
+    storageKey: string,
+    buffer: Buffer,
+    mimeType: string,
+  ): Promise<void> {
+    await this.client.putObject(
+      this.bucket,
+      storageKey,
+      buffer,
+      buffer.length,
+      { 'Content-Type': mimeType },
+    );
+  }
+
+  /**
+   * Downloads an object from MinIO and returns it as a Buffer.
+   */
+  async getObjectBuffer(storageKey: string): Promise<Buffer> {
+    const stream = await this.client.getObject(this.bucket, storageKey);
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
+      stream.on('error', reject);
+    });
+  }
+
+  /**
    * Schedules storage object deletion (fire-and-forget, async).
    * Called by soft-delete flow — do not await in controller.
    */

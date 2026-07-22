@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-applicant-core-03-PLAN.md
-last_updated: "2026-07-22T19:36:59.622Z"
+stopped_at: Completed 02-applicant-core-04-PLAN.md
+last_updated: "2026-07-22T19:39:05.208Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 22
-  completed_plans: 7
+  completed_plans: 8
   percent: 14
 ---
 
@@ -57,6 +57,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 02-applicant-core P02 | 3min | 2 tasks | 10 files |
 | Phase 02-applicant-core P01 | 5min | 2 tasks | 19 files |
 | Phase 02-applicant-core P03 | 7min | 2 tasks | 16 files |
+| Phase 02-applicant-core P04 | 9min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 02-applicant-core]: applicant_id always set from JWT req.user.id in service layer, never from DTO body — T-02-04 STRIDE threat mitigated
 - [Phase 02-applicant-core]: PermitFormPage Step 2 integrates DocumentUploadZone from 02-02 directly (not placeholder), enabling correct document attachment workflow
 - [Phase 02-applicant-core]: Auto-save pattern: 2s debounce on useWatch, exponential backoff retry (1s/2s/4s x3), warning toast after 3 failures
+- [Phase 02-applicant-core]: Plain axios (not apiClient) for MinIO presigned PUT — presigned URL auth is in query params; adding JWT Authorization header would break MinIO signature verification
+- [Phase 02-applicant-core]: Promise.allSettled for parallel batch uploads — individual file errors don't abort other uploads in the same batch
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T19:36:59.621Z
-Stopped at: Completed 02-applicant-core-03-PLAN.md
+Last session: 2026-07-22T19:39:05.207Z
+Stopped at: Completed 02-applicant-core-04-PLAN.md
 Resume file: None

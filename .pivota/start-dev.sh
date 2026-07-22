@@ -66,10 +66,6 @@ echo "[pivota] $(date -Iseconds) start-dev.sh begin (catalog: compose)"
 # sandbox via its external Daytona hostname) will NOT see it. This is a
 # project-side fix (rewrite to "8080:8080" or "0.0.0.0:8080:8080"), not a
 # wrapper fix (RESEARCH.md per-stack table — compose row).
-#
-# The framework workflow's inspector logs a warning when it detects a
-# loopback-bound ports mapping in the compose file at generation time, but
-# does not auto-rewrite the user's compose configuration.
 
 # === D-11.3: .env.example -> .env seed (platform-injection-safe) ===
 # Seed .env from .env.example for first boot, but NEVER let an .env.example
@@ -122,76 +118,17 @@ fi
 # === Optional pre-exec snippet (JDK install, rustup, golang one-shot setup) ===
 # Catalog entries with PRE_EXEC_SNIPPET inject heavyweight one-time installs
 # here. Empty string when not needed.
-# (none) — compose entry needs no system-level pre-install setup.
+# (no pre-exec snippet for compose entry)
 
 # === D-12: idempotent install via lockfile hash + presence check ===
+# compose entry: no lockfile, no install command — docker compose up --build
+# handles image pulls and rebuilds internally. Skip the install sentinel.
 SENTINEL="/tmp/pivota-setup-sentinel"
 LOCK_FILE_PATH=""
 INSTALL_PRESENCE_CHECK=""
-INSTALL_CMD=''   # single-quoted: catalog must escape internal quotes correctly
+INSTALL_CMD=''
 
-run_install() {
-  echo "[pivota] running install: $INSTALL_CMD"
-  local rc=0
-  bash -c "$INSTALL_CMD" || rc=$?   # capture directly; `if …; then` would reset $? to 0 on the no-else path
-  if (( rc == 0 )); then
-    return 0
-  fi
-  # D-12.1: npm peer-dependency (ERESOLVE) fallback + loud failure.
-  # A fresh scaffold can pin a transitive lib whose peer range lags the
-  # project's react/next major (observed: react-leaflet@4 wants react@18 under
-  # a react@19 project). npm 7+ aborts `npm ci`/`npm install` with ERESOLVE and
-  # writes NO node_modules — so EXEC_CMD below never binds a port and the
-  # preview panel hangs on "Waiting for dev server to bind…" with no surfaced
-  # error. Retry once with --legacy-peer-deps so boot can proceed, but log
-  # LOUDLY: a force-resolved peer range can install a runtime-incompatible tree
-  # (the offending component may crash when rendered — surface it at UAT).
-  if [[ "$INSTALL_CMD" == *"npm "* ]]; then
-    echo "[pivota] WARN install failed (exit=$rc) — retrying with --legacy-peer-deps (peer conflict force-resolved; runtime incompatibility possible)"
-    local rc2=0
-    npm install --legacy-peer-deps || rc2=$?
-    if (( rc2 == 0 )); then
-      echo "[pivota] WARN install succeeded via --legacy-peer-deps fallback — a dependency's peer range is unsatisfied; fix package.json (this is a real bug, not just a warning)"
-      return 0
-    fi
-    rc=$rc2
-  fi
-  # Emit a greppable marker so the platform surfaces "install failed" instead of
-  # letting the dev server silently never bind. `set -e` still aborts the script.
-  echo "[pivota] FATAL install failed (exit=$rc) — dev server cannot start; resolve the dependency conflict in the manifest" >&2
-  return "$rc"
-}
-
-if [[ -n "$LOCK_FILE_PATH" && -f "$LOCK_FILE_PATH" ]]; then
-  CURRENT_HASH=$(sha256sum "$LOCK_FILE_PATH" | cut -d' ' -f1)
-  PREVIOUS_HASH=$(cat "$SENTINEL" 2>/dev/null || echo "")
-
-  # RESEARCH.md Pitfall 6: lockfile-unchanged is necessary but not sufficient —
-  # the install-output directory must also exist (sentinel survives but
-  # node_modules / .venv / target might not on a fresh sandbox tmpfs).
-  PRESENCE_OK=1
-  if [[ -n "$INSTALL_PRESENCE_CHECK" && ! -e "$INSTALL_PRESENCE_CHECK" ]]; then
-    PRESENCE_OK=0
-  fi
-
-  if [[ "$CURRENT_HASH" == "$PREVIOUS_HASH" && "$PRESENCE_OK" == "1" ]]; then
-    echo "[pivota] lockfile unchanged AND install output present; skipping install"
-  else
-    if [[ "$PRESENCE_OK" == "0" ]]; then
-      echo "[pivota] install output ($INSTALL_PRESENCE_CHECK) missing; install required"
-    else
-      echo "[pivota] lockfile changed (or first boot); install required"
-    fi
-    run_install
-    echo "$CURRENT_HASH" > "$SENTINEL"
-  fi
-elif [[ -n "$INSTALL_CMD" ]]; then
-  # No lockfile to compare; honor any sentinel mismatch by running install once per sandbox.
-  if [[ ! -f "$SENTINEL" ]]; then
-    run_install
-    touch "$SENTINEL"
-  fi
-fi
+# No lockfile for compose — proceed directly to EXEC_CMD.
 
 # === D-14: retry loop (3 attempts, exponential backoff 1s / 2s / 4s) ===
 # Final-attempt exit code propagates the INNER command's exit code, not a

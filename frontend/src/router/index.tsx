@@ -9,6 +9,16 @@ const RegisterPage = lazy(() => import('../pages/auth/RegisterPage').then(m => (
 const ForgotPasswordPage = lazy(() => import('../pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 
+// Permit pages
+const PermitListPage = lazy(() => import('../pages/permits/PermitListPage').then(m => ({ default: m.PermitListPage })));
+const PermitDetailPage = lazy(() => import('../pages/permits/PermitDetailPage').then(m => ({ default: m.PermitDetailPage })));
+const PermitFormPageCreate = lazy(() =>
+  import('../pages/permits/PermitFormPage').then(m => ({ default: () => m.PermitFormPage({ mode: 'create' }) }))
+);
+const PermitFormPageEdit = lazy(() =>
+  import('../pages/permits/PermitFormPage').then(m => ({ default: () => m.PermitFormPage({ mode: 'edit' }) }))
+);
+
 const PageLoader = () => (
   <div className="min-h-screen bg-surface-base flex items-center justify-center">
     <div className="w-full max-w-sm p-8 space-y-4">
@@ -40,6 +50,12 @@ export function AppRouter() {
         <Route path="/register" element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* Permit routes — protected */}
+        <Route path="/permits" element={<ProtectedRoute><PermitListPage /></ProtectedRoute>} />
+        <Route path="/permits/new" element={<ProtectedRoute><PermitFormPageCreate /></ProtectedRoute>} />
+        <Route path="/permits/:id/edit" element={<ProtectedRoute><PermitFormPageEdit /></ProtectedRoute>} />
+        <Route path="/permits/:id" element={<ProtectedRoute><PermitDetailPage /></ProtectedRoute>} />
 
         {/* Protected routes */}
         <Route path="/applicant/*" element={<ProtectedRoute><ApplicantDashboard /></ProtectedRoute>} />

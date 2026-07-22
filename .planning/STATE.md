@@ -1,3 +1,19 @@
+---
+pivota_spec_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
+stopped_at: Completed 01-foundation-02-PLAN.md
+last_updated: "2026-07-22T16:58:33.391Z"
+last_activity: "2026-07-22 — Plan 01-03 complete: design system tokens + 7 UI primitives + E2E tests"
+progress:
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 22
+  completed_plans: 3
+  percent: 9
+---
+
 # Project State
 
 ## Project Reference
@@ -10,30 +26,34 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 ## Current Position
 
 Phase: 1 of 5 (Foundation)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-07-21 — Roadmap created; all 5 phases defined with success criteria
+Plan: 3 of 4 in current phase (01-02 complete)
+Status: In progress
+Last activity: 2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 14%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+
+- Total plans completed: 1
+- Average duration: 4 min
+- Total execution time: 4 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| Phase 01-foundation P03 | 1 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: —
+
+- Last 5 plans: 4 min
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-foundation P01 | 10min | 3 tasks | 17 files |
+| Phase 01-foundation P02 | 8min | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -45,6 +65,13 @@ Recent decisions affecting current work:
 - Roadmap: 5 phases derived from 40 v1 requirements; standard granularity
 - Stack: React (Vite + TS) frontend, Node.js (Express or NestJS) backend, Tailwind CSS design system, JWT + RBAC auth
 - Scope: Web-first (responsive), no payments, no native app, no AI/ML, English-only for v1
+- [Phase 01-foundation]: Design tokens use semantic names as Tailwind classes (bg-brand-primary, text-text-primary) — not default Tailwind blue/gray
+- [Phase 01-foundation]: React 17+ JSX transform configured — no explicit React imports needed in components that don't use React namespace
+- [Phase 01-foundation]: TypeORM migration class names require 13-digit JS timestamp suffix (e.g. InitialSchema1700000000001)
+- [Phase 01-foundation]: MinIO image lacks curl/wget; use /usr/bin/mc ready local for healthcheck
+- [Phase 01-foundation]: NestJS main.ts must bind 0.0.0.0 (not localhost) per sandbox runtime contract §2
+- [Phase 01-foundation]: bcryptjs over bcrypt: native addon segfaults on node:20-alpine; bcryptjs is pure JS and API-compatible
+- [Phase 01-foundation]: cookie-parser added to main.ts: required for req.cookies?.refreshToken to be populated in auth endpoints
 
 ### Pending Todos
 
@@ -56,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-21
-Stopped at: Roadmap and STATE.md written; ready to plan Phase 1
+Last session: 2026-07-22T16:58:33.390Z
+Stopped at: Completed 01-foundation-02-PLAN.md
 Resume file: None

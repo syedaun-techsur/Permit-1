@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-dashboards-01-PLAN.md
-last_updated: "2026-07-22T23:33:25.857Z"
+stopped_at: Completed 04-dashboards-03-PLAN.md
+last_updated: "2026-07-22T23:41:35.545Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 22
-  completed_plans: 17
+  completed_plans: 18
   percent: 14
 ---
 
@@ -66,6 +66,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 03-review-workflow P04 | 7min | 2 tasks | 12 files |
 | Phase 04-dashboards P02 | 2min | 2 tasks | 10 files |
 | Phase 04-dashboards P01 | 3min | 2 tasks | 8 files |
+| Phase 04-dashboards P03 | 3min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 04-dashboards]: Used apiClient from client.ts (not axiosInstance) — matches Phase 1 naming convention; ApplicationStatus instead of PermitStatus; Notification from message.types.ts; Tailwind tokens use brand-primary not primary-*
 - [Phase 04-dashboards]: SQL adapted to actual DB schema: message_reads join table instead of is_read_by_applicant/is_read_by_reviewer columns; audit_log table (not audit_logs) with occurred_at; submitted_at not submission_date; no permit_status_history table
 - [Phase 04-dashboards]: Dashboard service partial failure resilience: per-query try/catch returns zeros/empty arrays on failure preventing 500s from non-critical aggregate errors
+- [Phase 04-dashboards]: DashboardPage lazy-imports AdminDashboard with .catch() fallback — safe forward reference before Plan 04 adds the file
+- [Phase 04-dashboards]: Legacy /applicant/*, /reviewer/*, /admin/* routes redirect to /dashboard — clean URL consolidation; root redirect updated to /dashboard
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T23:33:25.855Z
-Stopped at: Completed 04-dashboards-01-PLAN.md
+Last session: 2026-07-22T23:41:35.544Z
+Stopped at: Completed 04-dashboards-03-PLAN.md
 Resume file: None

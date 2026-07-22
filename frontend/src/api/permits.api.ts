@@ -5,6 +5,8 @@ import type {
   LifecycleStage,
   PaginatedPermits,
   PermitApplication,
+  ReviewQueueItem,
+  ReviewQueueResponse,
   UpdatePermitPayload,
 } from '../types/permit.types';
 
@@ -26,4 +28,42 @@ export const permitsApi = {
 
   getLifecycle: (id: string) =>
     apiClient.get<{ stages: LifecycleStage[] }>(`/permits/${id}/lifecycle`).then((r) => r.data),
+
+  // Reviewer queue
+  getReviewQueue: (params?: {
+    status?: string;
+    permitType?: string;
+    assignment?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get<ReviewQueueResponse>('/permits/review-queue', { params }).then((r) => r.data),
+
+  // Lifecycle action endpoints
+  beginReview: (id: string) =>
+    apiClient.post<PermitApplication>(`/permits/${id}/actions/begin-review`).then((r) => r.data),
+
+  requestInfo: (id: string, infoRequestNote: string) =>
+    apiClient
+      .post<PermitApplication>(`/permits/${id}/actions/request-info`, { infoRequestNote })
+      .then((r) => r.data),
+
+  respondToInfo: (id: string, responseNote?: string) =>
+    apiClient
+      .post<PermitApplication>(`/permits/${id}/actions/respond-to-info`, { responseNote })
+      .then((r) => r.data),
+
+  decide: (id: string, outcome: 'approved' | 'rejected', decisionReason: string) =>
+    apiClient
+      .post<PermitApplication>(`/permits/${id}/actions/decide`, { outcome, decisionReason })
+      .then((r) => r.data),
+
+  // Document archive
+  getDocumentArchive: (id: string) =>
+    apiClient
+      .get<{ downloadUrl: string; expiresAt: string }>(`/permits/${id}/documents/archive`)
+      .then((r) => r.data),
 };
+
+// Re-export types for convenience
+export type { ReviewQueueItem };

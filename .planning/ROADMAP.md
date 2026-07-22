@@ -88,7 +88,13 @@ Plans:
   2. Reviewer dashboard shows assigned applications sorted by status priority with pending actions and unread messages surfaced
   3. Admin dashboard shows system-wide statistics: total applications by status and reviewer workload
   4. A reviewer can identify the status distribution of their application queue from the dashboard page without opening any individual application; an applicant can see all active permit statuses and unread message counts without navigating away from their dashboard
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — NestJS dashboard module: GET /dashboard/applicant, /reviewer, /admin with SQL aggregates + supertest integration tests
+- [ ] 04-02-PLAN.md — Frontend shared dashboard infrastructure: Recharts install, TypeScript types, API client, useDashboard hook (30s polling), StatCard + chart + table components
+- [ ] 04-03-PLAN.md — ApplicantDashboard + ReviewerDashboard pages (replace stubs), DashboardPage role router, router wiring, Playwright E2E tests
+- [ ] 04-04-PLAN.md — AdminDashboard page (new), Playwright E2E tests for admin dashboard
 
 ### Phase 5: Admin & Compliance
 **Goal**: Admins have full control over users and assignments, system-wide permit visibility, and the entire interface is WCAG 2.1 AA compliant

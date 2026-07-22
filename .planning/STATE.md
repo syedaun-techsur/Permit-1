@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-foundation-02-PLAN.md
-last_updated: "2026-07-22T16:58:33.391Z"
-last_activity: "2026-07-22 — Plan 01-03 complete: design system tokens + 7 UI primitives + E2E tests"
+stopped_at: Completed 02-applicant-core-02-PLAN.md
+last_updated: "2026-07-22T19:23:44.652Z"
+last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 22
-  completed_plans: 3
-  percent: 9
+  completed_plans: 5
+  percent: 14
 ---
 
 # Project State
@@ -54,6 +54,7 @@ Progress: [█░░░░░░░░░] 14%
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 10min | 3 tasks | 17 files |
 | Phase 01-foundation P02 | 8min | 2 tasks | 21 files |
+| Phase 02-applicant-core P02 | 3min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: NestJS main.ts must bind 0.0.0.0 (not localhost) per sandbox runtime contract §2
 - [Phase 01-foundation]: bcryptjs over bcrypt: native addon segfaults on node:20-alpine; bcryptjs is pure JS and API-compatible
 - [Phase 01-foundation]: cookie-parser added to main.ts: required for req.cookies?.refreshToken to be populated in auth endpoints
+- [Phase 02-applicant-core]: S3Service reads bucket from MINIO_BUCKET_NAME || MINIO_BUCKET for backward compat with existing compose env var
+- [Phase 02-applicant-core]: Presigned URL pattern: browser uploads directly to MinIO (signed URL), backend never proxies file bytes
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T16:58:33.390Z
-Stopped at: Completed 01-foundation-02-PLAN.md
+Last session: 2026-07-22T19:23:44.651Z
+Stopped at: Completed 02-applicant-core-02-PLAN.md
 Resume file: None

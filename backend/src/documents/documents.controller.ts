@@ -103,7 +103,7 @@ export class DocumentsController {
     @Param('id', ParseUUIDPipe) applicationId: string,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.documentsService.listDocuments(req.user.id, applicationId);
+    return this.documentsService.listDocuments(req.user.id, applicationId, req.user.role);
   }
 
   /**
@@ -120,6 +120,7 @@ export class DocumentsController {
       req.user.id,
       applicationId,
       docId,
+      req.user.role,
     );
   }
 

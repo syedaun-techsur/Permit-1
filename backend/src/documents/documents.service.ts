@@ -64,6 +64,34 @@ export class DocumentsService {
     return application;
   }
 
+  /**
+   * Read access to an application's documents: the owning applicant, or ANY
+   * reviewer/admin (they must see the applicant's documents to review them).
+   * Mirrors the permit-detail read policy. Write operations still use
+   * findApplicationAndVerifyOwner (owner-only).
+   */
+  private async findApplicationForRead(
+    applicationId: string,
+    userId: string,
+    userRole: UserRole,
+  ): Promise<PermitApplication> {
+    const application = await this.permitRepo.findOne({
+      where: { id: applicationId },
+    });
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+    const isApplicant = application.applicantId === userId;
+    const isReviewerOrAdmin =
+      userRole === UserRole.REVIEWER || userRole === UserRole.ADMIN;
+    if (!isApplicant && !isReviewerOrAdmin) {
+      throw new ForbiddenException(
+        'You do not have access to this application',
+      );
+    }
+    return application;
+  }
+
   async getUploadUrl(
     userId: string,
     applicationId: string,
@@ -214,8 +242,9 @@ export class DocumentsService {
   async listDocuments(
     userId: string,
     applicationId: string,
+    userRole: UserRole,
   ): Promise<Document[]> {
-    await this.findApplicationAndVerifyOwner(applicationId, userId);
+    await this.findApplicationForRead(applicationId, userId, userRole);
 
     return this.documentRepo
       .createQueryBuilder('doc')
@@ -231,8 +260,9 @@ export class DocumentsService {
     userId: string,
     applicationId: string,
     docId: string,
+    userRole: UserRole,
   ): Promise<{ url: string; expiresAt: string }> {
-    await this.findApplicationAndVerifyOwner(applicationId, userId);
+    await this.findApplicationForRead(applicationId, userId, userRole);
 
     const document = await this.documentRepo.findOne({
       where: { id: docId, applicationId },

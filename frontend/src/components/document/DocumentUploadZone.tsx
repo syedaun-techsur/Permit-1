@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
 import { UploadCloud } from 'lucide-react';
 import { useDocumentUpload } from '../../hooks/useDocumentUpload';
@@ -29,8 +29,6 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
   applicationStatus,
   onDocumentsChange,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const { uploadFiles, uploadQueue } = useDocumentUpload({
     applicationId,
     onUploadComplete: () => {
@@ -94,12 +92,11 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
         ].join(' ')}
         data-testid="upload-dropzone"
       >
-        {/* Hidden file input — keyboard interaction handled by the outer div */}
+        {/* Hidden file input — keyboard interaction handled by the outer div.
+            Do NOT override react-dropzone's ref here: getInputProps() supplies
+            the ref that open() (the Browse Files button) needs to click. */}
         <input
-          {...getInputProps()}
-          ref={fileInputRef}
-          aria-hidden="true"
-          tabIndex={-1}
+          {...getInputProps({ 'aria-hidden': true, tabIndex: -1 })}
         />
 
         <div className="flex flex-col items-center gap-3">

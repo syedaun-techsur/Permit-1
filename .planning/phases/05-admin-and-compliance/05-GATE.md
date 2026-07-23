@@ -9,6 +9,10 @@ waves:
     build: pass
     tests: pass
     fix_attempts: 1
+  - wave: 2
+    build: pass
+    tests: skipped
+    fix_attempts: 0
 ---
 
 ## Wave 1
@@ -16,3 +20,9 @@ waves:
 - Build: `(cd backend && npm run build) && (cd frontend && npm run build)` → pass
 - Tests: `cd backend && CI=true npx jest --testPathPattern='admin' --forceExit` → fail (exit 1) → pass after fix
 - Fix attempts: 1/3 — raw query `.skip()/.take()` replaced with `.limit()/.offset()` for correct LIMIT/OFFSET on getRawMany(); audit log cursor test fixed to accept null nextCursor when data fits within limit → fix commit `1b709d2`
+
+## Wave 2
+
+- Build: `(cd backend && npm run build) && (cd frontend && npm run build)` → pass
+- Tests: frontend Playwright E2E-only suite — deferred to verify phase
+- Fix attempts: 0/3

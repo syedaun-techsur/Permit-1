@@ -240,7 +240,9 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
             contactPhone: permit.contact_phone,
             contactEmail: permit.contact_email,
             estimatedStartDate: permit.estimated_start_date ?? '',
-            estimatedValue: permit.estimated_value,
+            // Coerce null → undefined: the schema's optional number rejects null,
+            // which would silently block the final submit.
+            estimatedValue: permit.estimated_value ?? undefined,
             additionalNotes: permit.additional_notes ?? '',
           });
         })
@@ -422,6 +424,15 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
     }
   };
 
+  // Called when the final submit is blocked by client-side validation. Without
+  // this, handleSubmit silently no-ops (the invalid fields live on Step 1, which
+  // isn't mounted on Step 3), so the Submit button appears to "do nothing".
+  const onInvalid = () => {
+    addToast('error', 'Some required details are missing or invalid. Please review Step 1.');
+    setSubmitError('Some required details are missing or invalid. Please go back and complete Step 1.');
+    setCurrentStep(1);
+  };
+
   const formTitle = mode === 'create' ? 'New Application' : 'Edit Application';
 
   if (isLoadingExisting) {
@@ -456,7 +467,7 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
       <Stepper currentStep={currentStep} steps={STEPS} />
 
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate>
           {/* Step 1: Permit Details */}
           {currentStep === 1 && (
             <div data-testid="step-1-content">

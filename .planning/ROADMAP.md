@@ -101,7 +101,7 @@ Plans:
 - [ ] 04-04-PLAN.md — AdminDashboard page (new), Playwright E2E tests for admin dashboard
 
 ### Phase 5: Admin & Compliance
-**Status**: executing
+**Status**: awaiting verify
 **Goal**: Admins have full control over users and assignments, system-wide permit visibility, and the entire interface is WCAG 2.1 AA compliant
 **Depends on**: Phase 4
 **Requirements**: PERM-07, ADMN-01, ADMN-02, ADMN-03, UX-02

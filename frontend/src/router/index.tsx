@@ -25,6 +25,9 @@ const PermitFormPageEdit = lazy(() =>
 const ReviewQueuePage = lazy(() => import('../pages/reviewer/ReviewQueuePage').then(m => ({ default: m.ReviewQueuePage })));
 const ReviewDetailPage = lazy(() => import('../pages/reviewer/ReviewDetailPage').then(m => ({ default: m.ReviewDetailPage })));
 
+// Dashboard page (role-aware router)
+const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })));
+
 const PageLoader = () => (
   <div className="min-h-screen bg-surface-base flex items-center justify-center">
     <div className="w-full max-w-sm p-8 space-y-4">
@@ -34,16 +37,7 @@ const PageLoader = () => (
   </div>
 );
 
-// Placeholder dashboard pages — replaced in later phases
-const ApplicantDashboard = () => (
-  <div className="p-8"><h1 className="text-heading-xl text-text-primary">Applicant Dashboard</h1><p className="text-body-md text-text-secondary mt-2">Coming in Phase 2.</p></div>
-);
-const ReviewerDashboard = () => (
-  <div className="p-8"><h1 className="text-heading-xl text-text-primary">Reviewer Dashboard</h1><p className="text-body-md text-text-secondary mt-2">Coming in Phase 3.</p></div>
-);
-const AdminDashboard = () => (
-  <div className="p-8"><h1 className="text-heading-xl text-text-primary">Admin Dashboard</h1><p className="text-body-md text-text-secondary mt-2">Coming in Phase 5.</p></div>
-);
+
 
 export function AppRouter() {
   const { isAuthenticated } = useAuthStore();
@@ -85,13 +79,16 @@ export function AppRouter() {
           }
         />
 
-        {/* Protected routes */}
-        <Route path="/applicant/*" element={<ProtectedRoute><ApplicantDashboard /></ProtectedRoute>} />
-        <Route path="/reviewer/*" element={<ProtectedRoute><ReviewerDashboard /></ProtectedRoute>} />
-        <Route path="/admin/*" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        {/* Dashboard — role-aware router */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+
+        {/* Legacy role-based routes redirect to /dashboard */}
+        <Route path="/applicant/*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/reviewer/*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/admin/*" element={<Navigate to="/dashboard" replace />} />
 
         {/* Root redirect */}
-        <Route path="/" element={<Navigate to={isAuthenticated ? '/applicant' : '/login'} replace />} />
+        <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

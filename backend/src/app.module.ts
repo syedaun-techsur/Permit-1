@@ -9,6 +9,7 @@ import { LifecycleModule } from './lifecycle/lifecycle.module';
 import { AuditModule } from './audit/audit.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MessagesModule } from './messages/messages.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MessagesModule } from './messages/messages.module';
     AuditModule,
     NotificationsModule,
     MessagesModule,
+    DashboardModule,
   ],
   controllers: [HealthController],
 })

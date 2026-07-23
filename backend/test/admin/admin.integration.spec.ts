@@ -612,9 +612,11 @@ describe('Admin Endpoints (integration)', () => {
 
       expect(res.body).toMatchObject({
         data: expect.any(Array),
-        nextCursor: expect.anything(), // null or string
+        // nextCursor may be null when all entries fit within the default limit
         totalCount: expect.any(Number),
       });
+      // nextCursor is a string or null — either is valid
+      expect(res.body.nextCursor === null || typeof res.body.nextCursor === 'string').toBe(true);
       expect(res.body.data.length).toBeGreaterThanOrEqual(1);
     });
 

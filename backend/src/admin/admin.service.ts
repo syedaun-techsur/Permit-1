@@ -134,9 +134,11 @@ export class AdminService {
     const total = parseInt(countResult?.count ?? '0', 10);
 
     // Apply ordering and pagination
+    // Use limit/offset (not skip/take) for raw queries to ensure LIMIT/OFFSET
+    // is applied directly rather than via TypeORM's subquery pagination mode
     qb.orderBy(dbSortColumn, sortOrder)
-      .skip((page - 1) * limit)
-      .take(limit);
+      .limit(limit)
+      .offset((page - 1) * limit);
 
     const data = await qb.getRawMany();
 

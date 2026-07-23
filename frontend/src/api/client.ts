@@ -54,6 +54,23 @@ const NO_REFRESH_PATHS = [
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Normalize the backend error shape so any UI code that reads (and renders)
+    // `response.data.message` always receives a STRING. The API returns domain
+    // errors as `message: { code, message }` and validation errors as
+    // `message: string[]`; rendering either as a React child throws
+    // "Objects are not valid as a React child" and blanks the whole app.
+    const errData = error.response?.data as { message?: unknown } | undefined;
+    if (errData && typeof errData === 'object') {
+      const m = errData.message;
+      if (Array.isArray(m)) {
+        errData.message = m.filter(Boolean).join(', ');
+      } else if (m && typeof m === 'object') {
+        const inner = m as { message?: unknown };
+        errData.message =
+          typeof inner.message === 'string' ? inner.message : JSON.stringify(m);
+      }
+    }
+
     const originalRequest = error.config;
     const requestUrl: string = originalRequest?.url ?? '';
     const skipRefresh = NO_REFRESH_PATHS.some((p) => requestUrl.includes(p));

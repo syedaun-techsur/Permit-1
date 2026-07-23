@@ -472,7 +472,11 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
       <Stepper currentStep={currentStep} steps={STEPS} />
 
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate>
+        {/* Submission happens ONLY via an explicit click on "Submit Application"
+            (below). The form's own submit is disabled so a stray Enter — e.g.
+            the trailing Enter after a file dialog, or Enter on a focused button
+            — can never auto-submit a multi-step wizard. */}
+        <form onSubmit={(e) => e.preventDefault()} noValidate>
           {/* Step 1: Permit Details */}
           {currentStep === 1 && (
             <div data-testid="step-1-content">
@@ -534,6 +538,7 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
             <div>
               {currentStep < STEPS.length ? (
                 <Button
+                  key="wizard-next"
                   type="button"
                   variant="primary"
                   onClick={handleNext}
@@ -543,9 +548,11 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
                 </Button>
               ) : (
                 <Button
-                  type="submit"
+                  key="wizard-submit"
+                  type="button"
                   variant="primary"
                   loading={isSubmitting}
+                  onClick={handleSubmit(onSubmit, onInvalid)}
                   data-testid="submit-button"
                 >
                   Submit Application

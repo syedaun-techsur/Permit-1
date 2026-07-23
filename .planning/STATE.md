@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-dashboards-04-PLAN.md
-last_updated: "2026-07-22T23:41:57.935Z"
+stopped_at: Completed 05-admin-and-compliance-01-PLAN.md
+last_updated: "2026-07-23T01:22:30.762Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 22
-  completed_plans: 19
+  completed_plans: 20
   percent: 14
 ---
 
@@ -68,6 +68,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 04-dashboards P01 | 3min | 2 tasks | 8 files |
 | Phase 04-dashboards P03 | 3min | 2 tasks | 7 files |
 | Phase 04-dashboards P04 | 4min | 2 tasks | 2 files |
+| Phase 05-admin-and-compliance P01 | 6min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Recent decisions affecting current work:
 - [Phase 04-dashboards]: DashboardPage lazy-imports AdminDashboard with .catch() fallback — safe forward reference before Plan 04 adds the file
 - [Phase 04-dashboards]: Legacy /applicant/*, /reviewer/*, /admin/* routes redirect to /dashboard — clean URL consolidation; root redirect updated to /dashboard
 - [Phase 04-dashboards]: Tailwind tokens corrected: brand-primary/text-text-primary instead of primary-* aliases from plan
+- [Phase 05-admin-and-compliance]: AdminService uses QueryRunner transactions for atomic user mutation + audit entries (T-05-05)
+- [Phase 05-admin-and-compliance]: sortBy whitelist (5 allowed columns) + PERMIT_SORT_MAP prevents SQL injection in admin permits ORDER BY (T-05-02)
+- [Phase 05-admin-and-compliance]: CSV export: double-quote wrapping + tab-prefix on formula chars for injection protection (T-05-04)
 
 ### Pending Todos
 
@@ -124,6 +128,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-22T23:41:57.934Z
-Stopped at: Completed 04-dashboards-04-PLAN.md
+Last session: 2026-07-23T01:22:30.761Z
+Stopped at: Completed 05-admin-and-compliance-01-PLAN.md
 Resume file: None

@@ -9,6 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  StreamableFile,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -43,6 +44,29 @@ export class DocumentsController {
     @Request() req: AuthenticatedRequest,
   ) {
     return this.documentsService.getArchiveUrl(applicationId, req.user.id, req.user.role);
+  }
+
+  /**
+   * GET /permits/:id/documents/archive/download
+   * Streams a ZIP of all documents straight to the browser (same-origin,
+   * authenticated) — avoids a presigned URL to an internal object-store host.
+   * Declared before the :docId routes so "archive" isn't parsed as a docId.
+   */
+  @Get('archive/download')
+  @Roles(UserRole.REVIEWER, UserRole.ADMIN)
+  async downloadArchive(
+    @Param('id', ParseUUIDPipe) applicationId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<StreamableFile> {
+    const { buffer, filename } = await this.documentsService.getArchiveBuffer(
+      applicationId,
+      req.user.id,
+      req.user.role,
+    );
+    return new StreamableFile(buffer, {
+      type: 'application/zip',
+      disposition: `attachment; filename="${filename}"`,
+    });
   }
 
   /**
@@ -122,6 +146,30 @@ export class DocumentsController {
       docId,
       req.user.role,
     );
+  }
+
+  /**
+   * GET /permits/:id/documents/:docId/download
+   * Streams a single document's bytes straight to the browser (same-origin,
+   * authenticated). The client fetches this as a blob for preview/download.
+   */
+  @Get(':docId/download')
+  async downloadDocument(
+    @Param('id', ParseUUIDPipe) applicationId: string,
+    @Param('docId', ParseUUIDPipe) docId: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<StreamableFile> {
+    const { buffer, filename, mimeType } =
+      await this.documentsService.getDocumentBuffer(
+        req.user.id,
+        applicationId,
+        docId,
+        req.user.role,
+      );
+    return new StreamableFile(buffer, {
+      type: mimeType,
+      disposition: `attachment; filename="${filename}"`,
+    });
   }
 
   /**

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, X, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { documentsApi } from '../../api/documents.api';
+import { triggerBlobDownload } from '../../lib/download';
 import { Skeleton } from '../ui/Skeleton';
 import type { PermitDocument } from '../../types/document.types';
 
@@ -30,15 +31,15 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({ document }) =>
     mimeType ===
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
-  // For images: fetch URL on mount
+  // For images: fetch the bytes as a blob on mount and preview via object URL.
   useEffect(() => {
     if (!isImage) return;
     let cancelled = false;
     setIsLoadingUrl(true);
     documentsApi
-      .getDocumentUrl(document.application_id, document.id)
-      .then((res) => {
-        if (!cancelled) setPresignedUrl(res.data.url);
+      .downloadDocumentBlob(document.application_id, document.id)
+      .then((blob) => {
+        if (!cancelled) setPresignedUrl(URL.createObjectURL(blob));
       })
       .catch(console.error)
       .finally(() => {
@@ -49,17 +50,26 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({ document }) =>
     };
   }, [document.id, document.application_id, isImage]);
 
+  // Revoke the object URL when it changes or on unmount to avoid leaks.
+  useEffect(() => {
+    return () => {
+      if (presignedUrl && presignedUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(presignedUrl);
+      }
+    };
+  }, [presignedUrl]);
+
   const fetchPdfUrl = useCallback(async () => {
     if (presignedUrl) return; // already fetched
     setIsLoadingUrl(true);
     try {
-      const res = await documentsApi.getDocumentUrl(
+      const blob = await documentsApi.downloadDocumentBlob(
         document.application_id,
         document.id,
       );
-      setPresignedUrl(res.data.url);
+      setPresignedUrl(URL.createObjectURL(blob));
     } catch (err) {
-      console.error('Failed to fetch document URL:', err);
+      console.error('Failed to fetch document:', err);
     } finally {
       setIsLoadingUrl(false);
     }
@@ -75,13 +85,13 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({ document }) =>
 
   const handleDownload = async () => {
     try {
-      const res = await documentsApi.getDocumentUrl(
+      const blob = await documentsApi.downloadDocumentBlob(
         document.application_id,
         document.id,
       );
-      window.open(res.data.url, '_blank', 'noopener,noreferrer');
+      triggerBlobDownload(blob, document.filename);
     } catch (err) {
-      console.error('Failed to get download URL:', err);
+      console.error('Failed to download document:', err);
     }
   };
 

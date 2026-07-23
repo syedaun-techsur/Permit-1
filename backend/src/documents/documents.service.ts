@@ -386,4 +386,86 @@ export class DocumentsService {
 
     return { downloadUrl, expiresAt };
   }
+
+  private async buildDocumentsZip(documents: Document[]): Promise<Buffer> {
+    return new Promise<Buffer>((resolve, reject) => {
+      const archive = new archiverModule.ZipArchive({ zlib: { level: 6 } });
+      const chunks: Buffer[] = [];
+      archive.on('data', (chunk: Buffer) => chunks.push(chunk));
+      archive.on('end', () => resolve(Buffer.concat(chunks)));
+      archive.on('error', reject);
+      const appendPromises = documents.map(async (doc) => {
+        try {
+          const buf = await this.s3Service.getObjectBuffer(doc.storageKey);
+          archive.append(buf, { name: doc.filename });
+        } catch {
+          // Skip documents that cannot be fetched (don't fail the whole archive)
+        }
+      });
+      Promise.all(appendPromises)
+        .then(() => archive.finalize())
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns a single document's bytes for streaming straight to the browser
+   * (same-origin, authenticated) — no presigned URL that points at an internal
+   * object-store host the browser can't reach. Read access: applicant or any
+   * reviewer/admin.
+   */
+  async getDocumentBuffer(
+    userId: string,
+    applicationId: string,
+    docId: string,
+    userRole: UserRole,
+  ): Promise<{ buffer: Buffer; filename: string; mimeType: string }> {
+    await this.findApplicationForRead(applicationId, userId, userRole);
+
+    const document = await this.documentRepo.findOne({
+      where: { id: docId, applicationId },
+    });
+    if (!document || document.status === DocumentStatus.DELETED) {
+      throw new NotFoundException('Document not found');
+    }
+
+    const buffer = await this.s3Service.getObjectBuffer(document.storageKey);
+    return { buffer, filename: document.filename, mimeType: document.mimeType };
+  }
+
+  /**
+   * Returns a ZIP of all active documents as a buffer for streaming to the
+   * browser. Reviewer/admin only (applicants view their own docs individually).
+   */
+  async getArchiveBuffer(
+    applicationId: string,
+    requesterId: string,
+    requesterRole: UserRole,
+  ): Promise<{ buffer: Buffer; filename: string }> {
+    const application = await this.permitRepo.findOne({
+      where: { id: applicationId },
+    });
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    const isReviewerOrAdmin =
+      requesterRole === UserRole.REVIEWER || requesterRole === UserRole.ADMIN;
+    if (!isReviewerOrAdmin) {
+      throw new ForbiddenException(
+        'Only a reviewer or an admin can download the document archive',
+      );
+    }
+
+    const documents = await this.documentRepo.find({
+      where: { applicationId, status: DocumentStatus.UPLOADED },
+    });
+    if (documents.length === 0) {
+      throw new UnprocessableEntityException('No documents available for archive');
+    }
+
+    const buffer = await this.buildDocumentsZip(documents);
+    const filename = `${application.referenceNumber ?? 'application'}-documents.zip`;
+    return { buffer, filename };
+  }
 }

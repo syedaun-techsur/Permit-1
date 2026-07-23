@@ -59,6 +59,24 @@ export const documentsApi = {
       `/permits/${applicationId}/documents/${docId}/url`,
     ),
 
+  // Fetch a document's bytes as a blob straight from the API (same-origin,
+  // authenticated). Used for preview (object URL) and download — avoids a
+  // presigned URL to an internal object-store host the browser can't reach.
+  downloadDocumentBlob: (applicationId: string, docId: string): Promise<Blob> =>
+    apiClient
+      .get(`/permits/${applicationId}/documents/${docId}/download`, {
+        responseType: 'blob',
+      })
+      .then((r) => r.data as Blob),
+
+  // Fetch a ZIP of all documents as a blob (reviewer/admin).
+  downloadArchiveBlob: (applicationId: string): Promise<Blob> =>
+    apiClient
+      .get(`/permits/${applicationId}/documents/archive/download`, {
+        responseType: 'blob',
+      })
+      .then((r) => r.data as Blob),
+
   deleteDocument: (applicationId: string, docId: string) =>
     apiClient.delete(`/permits/${applicationId}/documents/${docId}`),
 };

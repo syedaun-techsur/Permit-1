@@ -10,7 +10,8 @@ import { DocumentList } from '../../components/document/DocumentList';
 import { ReviewerActionPanel } from '../../components/reviewer/ReviewerActionPanel';
 import { MessagePanel } from '../../components/messaging/MessagePanel';
 import { AppShell } from '../../components/layout/AppShell';
-import { permitsApi } from '../../api/permits.api';
+import { documentsApi } from '../../api/documents.api';
+import { triggerBlobDownload } from '../../lib/download';
 import { useUiStore } from '../../store/ui.store';
 
 // ─── Read-only field display ──────────────────────────────────────────────────
@@ -81,12 +82,15 @@ export function ReviewDetailPage() {
     if (!displayPermit) return;
     setIsDownloadingArchive(true);
     try {
-      const result = await permitsApi.getDocumentArchive(displayPermit.id);
-      window.open(result.downloadUrl, '_blank', 'noopener,noreferrer');
+      const blob = await documentsApi.downloadArchiveBlob(displayPermit.id);
+      triggerBlobDownload(
+        blob,
+        `${displayPermit.reference_number ?? 'application'}-documents.zip`,
+      );
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } }).response?.data?.message ??
-        'Failed to generate download archive. Please try again.';
+        'Failed to download documents. Please try again.';
       addToast('error', msg);
     } finally {
       setIsDownloadingArchive(false);

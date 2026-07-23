@@ -373,6 +373,7 @@ export class PermitsService {
     }
 
     // Assign reviewer if not already assigned
+    const previousReviewerId = permit.reviewerId;
     if (!permit.reviewerId) {
       permit.reviewerId = reviewerId;
     }
@@ -381,10 +382,22 @@ export class PermitsService {
 
     const saved = await this.permitRepo.save(permit);
 
-    await Promise.all([
+    const auditEntries: Promise<unknown>[] = [
       this.lifecycleService.createStage(id, ApplicationStatus.UNDER_REVIEW, reviewerId),
       this.auditService.createEntry('REVIEW_STARTED', reviewerId, id, {}),
-    ]);
+    ];
+
+    // Write REVIEWER_ASSIGNED audit entry when reviewer is first assigned
+    if (!previousReviewerId) {
+      auditEntries.push(
+        this.auditService.createEntry('REVIEWER_ASSIGNED', reviewerId, id, {
+          reviewerId,
+          previousReviewerId: null,
+        }),
+      );
+    }
+
+    await Promise.all(auditEntries);
 
     // Notify applicant
     await this.notificationsService.createNotification(

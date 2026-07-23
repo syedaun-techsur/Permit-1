@@ -1,8 +1,8 @@
 /** @type {import('jest').Config} */
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: 'src',
-  testRegex: '.*\\.spec\\.ts$|.*\\.e2e-spec\\.ts$',
+  roots: ['<rootDir>/src', '<rootDir>/test'],
+  testRegex: '.*\\.spec\\.ts$|.*\\.e2e-spec\\.ts$|.*\\.integration\\.spec\\.ts$',
   transform: {
     '^.+\\.(t|j)s$': [
       'ts-jest',
@@ -17,8 +17,8 @@ module.exports = {
   transformIgnorePatterns: [
     '/node_modules/(?!(archiver|archiver-utils|zip-stream|compress-commons|crc32-stream|bl|readable-stream|is-stream|get-stream|lazystream)/)',
   ],
-  collectCoverageFrom: ['**/*.(t|j)s'],
+  collectCoverageFrom: ['src/**/*.(t|j)s'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
-  testTimeout: 30000,
+  testTimeout: 60000,
 };

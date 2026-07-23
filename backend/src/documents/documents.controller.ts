@@ -7,15 +7,18 @@ import {
   Body,
   Request,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
 import { ParseUUIDPipe } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../common/enums/role.enum';
-import { DocumentsService } from './documents.service';
+import { DocumentsService, UploadedFileLike } from './documents.service';
 import { UploadUrlRequestDto } from './dto/upload-url-request.dto';
 import { RegisterDocumentDto } from './dto/register-document.dto';
 
@@ -53,6 +56,24 @@ export class DocumentsController {
     @Request() req: AuthenticatedRequest,
   ) {
     return this.documentsService.getUploadUrl(req.user.id, applicationId, dto);
+  }
+
+  /**
+   * POST /permits/:id/documents/upload
+   * Direct multipart upload: accepts the file, stores it in object storage
+   * server-side, and creates the document record. Preferred over the
+   * presigned-URL flow because it works even when the browser cannot reach
+   * the object store directly (e.g. behind a preview proxy).
+   */
+  @Post('upload')
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 52428800 } }))
+  async upload(
+    @Param('id', ParseUUIDPipe) applicationId: string,
+    @UploadedFile() file: UploadedFileLike,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.documentsService.uploadDocument(req.user.id, applicationId, file);
   }
 
   /**

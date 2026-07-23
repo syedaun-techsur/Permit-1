@@ -10,23 +10,11 @@ import type {
   UpdatePermitPayload,
 } from '../types/permit.types';
 
-// The API serializes entity responses in camelCase (permitType, siteStreet,
-// updatedAt, ...), but the frontend PermitApplication / LifecycleStage types and
-// every component read snake_case (permit_type, site_street, updated_at, ...).
-// Left unconverted, every field is `undefined` at runtime — which crashed date
-// formatting on the permit list (`new Date(undefined)` → "Invalid time value")
-// and blanked loaded edit forms (so autosave then PATCHed empty required fields
-// → 400). Normalize each entity object's keys to snake_case here, once, so no
-// component change is needed. Permit/stage objects are flat, so a shallow key
-// rewrite is sufficient.
-function toSnakeKeys<T>(raw: unknown): T {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries((raw ?? {}) as Record<string, unknown>)) {
-    out[k.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)] = v;
-  }
-  return out as T;
-}
+import { toSnakeKeys } from './normalize';
 
+// The API serializes permit/lifecycle entities in camelCase but the frontend
+// types + components read snake_case. Normalize each object's keys once here so
+// no component change is needed. See ./normalize for details.
 const toPermit = (raw: unknown) => toSnakeKeys<PermitApplication>(raw);
 
 export const permitsApi = {

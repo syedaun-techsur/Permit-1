@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import axios from 'axios';
 import { documentsApi } from '../api/documents.api';
 import type { PermitDocument, UploadFileState } from '../types/document.types';
 
@@ -47,8 +46,8 @@ export function useDocumentUpload({
     if (!applicationId) return;
     setIsLoadingDocuments(true);
     try {
-      const response = await documentsApi.listDocuments(applicationId);
-      setDocuments(response.data);
+      const docs = await documentsApi.listDocuments(applicationId);
+      setDocuments(docs);
     } catch (err) {
       console.error('Failed to fetch documents:', err);
     } finally {
@@ -97,46 +96,26 @@ export function useDocumentUpload({
         return;
       }
 
-      // a) Set status: uploading
+      // Set status: uploading
       updateQueueItem(filename, { status: 'uploading', progress: 0 });
 
       try {
-        // b) POST /permits/:id/documents/upload-url → get { uploadUrl, storageKey }
-        const uploadUrlResponse = await documentsApi.getUploadUrl(applicationId, {
-          filename,
-          mimeType: file.type,
-          sizeBytes: file.size,
-        });
-        const { uploadUrl, storageKey } = uploadUrlResponse.data;
+        // Single multipart upload straight to the API; the backend stores the
+        // file server-side and returns the created document record.
+        const doc = await documentsApi.uploadDocument(applicationId, file, (progress) =>
+          updateQueueItem(filename, { progress }),
+        );
 
-        // c) PUT uploadUrl with file binary using plain axios (NOT apiClient)
-        // MinIO presigned URL includes auth in query params — adding JWT Authorization header would break it
-        await axios.put(uploadUrl, file, {
-          headers: { 'Content-Type': file.type },
-          onUploadProgress: (e) => {
-            const progress = e.total
-              ? Math.round((e.loaded / e.total) * 100)
-              : 0;
-            updateQueueItem(filename, { progress });
-          },
-        });
-
-        // d) POST /permits/:id/documents to register document metadata
-        const registerResponse = await documentsApi.registerDocument(applicationId, {
-          filename,
-          mimeType: file.type,
-          sizeBytes: file.size,
-          storageKey,
-        });
-        const doc = registerResponse.data;
-
-        // e) Set status: uploaded, add to documents array
         updateQueueItem(filename, { status: 'uploaded', progress: 100, document: doc });
         setDocuments((prev) => [...prev, doc]);
         onUploadComplete?.(doc);
       } catch (err) {
+        const axiosErr = err as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
         const errorMessage =
-          err instanceof Error ? err.message : 'Upload failed';
+          axiosErr.response?.data?.message ?? axiosErr.message ?? 'Upload failed';
         updateQueueItem(filename, { status: 'error', error: errorMessage });
         onUploadError?.(filename, errorMessage);
       }

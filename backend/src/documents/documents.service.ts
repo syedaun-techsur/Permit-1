@@ -23,6 +23,21 @@ const UPLOAD_ALLOWED_STATUSES: ApplicationStatus[] = [
 const MAX_DOCUMENTS_PER_APPLICATION = 20;
 const MAX_TOTAL_SIZE_BYTES = 104857600; // 100 MB
 const PRESIGNED_URL_EXPIRY_SECONDS = 900; // 15 minutes
+const MAX_FILE_SIZE_BYTES = 26214400; // 25 MB
+const ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+/** Minimal shape of a Multer memory-storage file (avoids depending on @types/multer). */
+export interface UploadedFileLike {
+  originalname: string;
+  mimetype: string;
+  size: number;
+  buffer: Buffer;
+}
 
 @Injectable()
 export class DocumentsService {
@@ -119,6 +134,76 @@ export class DocumentsService {
       sizeBytes: dto.sizeBytes,
       documentType: dto.documentType ?? null,
       storageKey: dto.storageKey,
+      status: DocumentStatus.UPLOADED,
+      uploadedAt: new Date(),
+    });
+
+    return this.documentRepo.save(document);
+  }
+
+  /**
+   * Direct server-side upload: the browser POSTs the file (multipart) to the
+   * API and the backend streams it into object storage. This avoids handing the
+   * browser a presigned URL pointing at an internal MinIO host it can't reach
+   * (the upload-url + client-PUT flow only works when the browser can reach
+   * MinIO directly). Same ownership/status/type/size/quota checks as upload-url.
+   */
+  async uploadDocument(
+    userId: string,
+    applicationId: string,
+    file: UploadedFileLike | undefined,
+  ): Promise<Document> {
+    if (!file) {
+      throw new UnprocessableEntityException('No file provided');
+    }
+
+    const application = await this.findApplicationAndVerifyOwner(
+      applicationId,
+      userId,
+    );
+
+    if (!UPLOAD_ALLOWED_STATUSES.includes(application.status)) {
+      throw new UnprocessableEntityException(
+        'Documents can only be uploaded when application is in draft or additional_info_needed status',
+      );
+    }
+
+    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      throw new UnprocessableEntityException(
+        'Unsupported file type. Allowed: PDF, JPEG, PNG, DOCX',
+      );
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      throw new UnprocessableEntityException('File too large (max 25 MB)');
+    }
+
+    const activeDocs = await this.documentRepo.find({
+      where: { applicationId, status: DocumentStatus.UPLOADED },
+    });
+
+    if (activeDocs.length >= MAX_DOCUMENTS_PER_APPLICATION) {
+      throw new UnprocessableEntityException('MAX_DOCUMENTS_REACHED');
+    }
+
+    const totalSize = activeDocs.reduce((sum, doc) => sum + doc.sizeBytes, 0);
+    if (totalSize + file.size > MAX_TOTAL_SIZE_BYTES) {
+      throw new UnprocessableEntityException('MAX_TOTAL_SIZE_EXCEEDED');
+    }
+
+    const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storageKey = `${applicationId}/${randomUUID()}-${sanitizedFilename}`;
+
+    await this.s3Service.uploadBuffer(storageKey, file.buffer, file.mimetype);
+
+    const document = this.documentRepo.create({
+      applicationId,
+      uploadedBy: userId,
+      filename: file.originalname,
+      mimeType: file.mimetype,
+      sizeBytes: file.size,
+      documentType: null,
+      storageKey,
       status: DocumentStatus.UPLOADED,
       uploadedAt: new Date(),
     });

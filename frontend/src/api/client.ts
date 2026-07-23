@@ -38,13 +38,27 @@ function processQueue(error: unknown, token: string | null = null) {
   failedQueue = [];
 }
 
+// Endpoints where a 401 means "bad credentials / no session", NOT "access token
+// expired". Attempting a silent refresh here is wrong: it masks the real error
+// (e.g. a failed login surfaces the refresh's "No refresh token" instead of
+// "Invalid email or password") and triggers a spurious logout + redirect.
+const NO_REFRESH_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
+
 // Response interceptor: silent refresh on 401
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl: string = originalRequest?.url ?? '';
+    const skipRefresh = NO_REFRESH_PATHS.some((p) => requestUrl.includes(p));
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !skipRefresh) {
       if (isRefreshing) {
         // Queue subsequent 401s until refresh completes
         return new Promise((resolve, reject) => {

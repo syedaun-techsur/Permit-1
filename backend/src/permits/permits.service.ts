@@ -4,6 +4,7 @@ import {
   ConflictException,
   UnprocessableEntityException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -57,6 +58,19 @@ export interface ReviewQueueQuery {
 export interface ReviewQueueResult {
   data: ReviewQueueItem[];
   meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
+// Mirrors the frontend AdminPermit shape returned after an assign-reviewer.
+export interface AdminPermitView {
+  id: string;
+  referenceNumber: string;
+  permitType: string;
+  applicantName: string | null;
+  assignedReviewerId: string | null;
+  assignedReviewerName: string | null;
+  status: string;
+  submittedAt: Date | null;
+  updatedAt: Date;
 }
 
 @Injectable()
@@ -247,6 +261,63 @@ export class PermitsService {
     return this.lifecycleService.getStages(id);
   }
 
+  // Admin assigns a reviewer to an application (or clears it with reviewerId=null).
+  // Returns the AdminPermit-shaped row the admin table renders (with names joined).
+  async assignReviewer(
+    permitId: string,
+    reviewerId: string | null,
+    actorId: string,
+  ): Promise<AdminPermitView> {
+    const permit = await this.permitRepo.findOne({ where: { id: permitId } });
+    if (!permit) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (reviewerId) {
+      const rows = await this.dataSource.query(
+        `SELECT id FROM users WHERE id = $1 AND role = 'reviewer' AND is_active = true`,
+        [reviewerId],
+      );
+      if (rows.length === 0) {
+        throw new BadRequestException('reviewerId must be an active reviewer');
+      }
+    }
+
+    permit.reviewerId = reviewerId;
+    await this.permitRepo.save(permit);
+
+    await this.auditService.createEntry('REVIEWER_ASSIGNED', actorId, permitId, {
+      reviewerId,
+    });
+
+    if (reviewerId) {
+      await this.notificationsService.createNotification(
+        reviewerId,
+        permitId,
+        `You have been assigned permit application #${permit.referenceNumber}.`,
+        NotificationType.REVIEWER_ASSIGNED,
+      );
+    }
+
+    const [row] = await this.dataSource.query(
+      `SELECT pa.id,
+              pa.reference_number AS "referenceNumber",
+              pa.permit_type AS "permitType",
+              app.full_name AS "applicantName",
+              pa.reviewer_id AS "assignedReviewerId",
+              rev.full_name AS "assignedReviewerName",
+              pa.status,
+              pa.submitted_at AS "submittedAt",
+              pa.updated_at AS "updatedAt"
+       FROM permit_applications pa
+       LEFT JOIN users app ON app.id = pa.applicant_id
+       LEFT JOIN users rev ON rev.id = pa.reviewer_id
+       WHERE pa.id = $1`,
+      [permitId],
+    );
+    return row as AdminPermitView;
+  }
+
   // Reviewer/admin queue: every non-draft application (optionally scoped to the
   // reviewer's own assignments), with the projected fields the ReviewQueuePage
   // renders (applicant name, address summary, age, unread message count).
@@ -373,6 +444,7 @@ export class PermitsService {
     }
 
     // Assign reviewer if not already assigned
+    const previousReviewerId = permit.reviewerId;
     if (!permit.reviewerId) {
       permit.reviewerId = reviewerId;
     }
@@ -381,10 +453,22 @@ export class PermitsService {
 
     const saved = await this.permitRepo.save(permit);
 
-    await Promise.all([
+    const auditEntries: Promise<unknown>[] = [
       this.lifecycleService.createStage(id, ApplicationStatus.UNDER_REVIEW, reviewerId),
       this.auditService.createEntry('REVIEW_STARTED', reviewerId, id, {}),
-    ]);
+    ];
+
+    // Write REVIEWER_ASSIGNED audit entry when reviewer is first assigned
+    if (!previousReviewerId) {
+      auditEntries.push(
+        this.auditService.createEntry('REVIEWER_ASSIGNED', reviewerId, id, {
+          reviewerId,
+          previousReviewerId: null,
+        }),
+      );
+    }
+
+    await Promise.all(auditEntries);
 
     // Notify applicant
     await this.notificationsService.createNotification(

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, Activity, CalendarCheck, CheckCircle, Users, FileText, ClipboardList } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -47,6 +47,7 @@ function ActivityEntry({ item }: { item: AuditLogEntry }) {
 }
 
 export function AdminDashboard() {
+  useEffect(() => { document.title = 'Admin Dashboard — Permit Management System'; }, []);
   const navigate = useNavigate();
   const { data, isLoading, error, refetch } = useDashboard('admin');
   const [lastRefreshed] = useState(new Date());
@@ -85,7 +86,7 @@ export function AdminDashboard() {
             Manage Users
           </button>
           <button
-            onClick={() => navigate('/admin/permits')}
+            onClick={() => navigate('/admin/applications')}
             className="inline-flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-brand-primary px-3 py-2 rounded-lg hover:bg-surface-sidebar transition-colors focus:outline-none focus:ring-2 focus:ring-border-focus"
           >
             <FileText className="w-4 h-4" />
@@ -142,7 +143,7 @@ export function AdminDashboard() {
           <StatusBarChart
             data={data?.statusDistribution ?? []}
             title="Applications by Status — System Wide"
-            onBarClick={(status) => navigate(`/admin/permits?status=${status}`)}
+            onBarClick={(status) => navigate(`/admin/applications?status=${status}`)}
           />
         )}
       </div>
@@ -164,7 +165,7 @@ export function AdminDashboard() {
               ) : (
                 <ReviewerWorkloadTable
                   data={data?.reviewerWorkload ?? []}
-                  onViewQueue={(reviewerId) => navigate(`/admin/permits?reviewerId=${reviewerId}`)}
+                  onViewQueue={(reviewerId) => navigate(`/admin/applications?reviewerId=${reviewerId}`)}
                 />
               )}
             </div>

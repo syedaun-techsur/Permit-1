@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import type { ApplicationStatus, LifecycleStage } from '../../types/permit.types';
 
 interface PermitStatusTimelineProps {
@@ -23,6 +23,13 @@ const STAGE_LABELS: Record<ApplicationStatus, string> = {
   additional_info_needed: 'Additional Info Needed',
   approved: 'Approved',
   rejected: 'Rejected',
+};
+
+/** Maps internal status values to human-readable ARIA strings */
+const STAGE_STATUS_LABELS: Record<'completed' | 'current' | 'future', string> = {
+  completed: 'completed',
+  current: 'current',
+  future: 'upcoming',
 };
 
 function getStageStatus(
@@ -61,9 +68,22 @@ interface StageNodeProps {
 const StageNode: React.FC<StageNodeProps> = ({ stage, status, stageRecord, isLast }) => {
   const label = STAGE_LABELS[stage];
   const enteredAt = stageRecord?.entered_at ? new Date(stageRecord.entered_at) : null;
+  const formattedDate = enteredAt ? format(enteredAt, 'PPpp') : null;
+
+  const ariaLabel = [
+    label,
+    STAGE_STATUS_LABELS[status],
+    formattedDate ? `completed ${formattedDate}` : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   return (
-    <li className="relative flex items-start gap-4">
+    <li
+      className="relative flex items-start gap-4"
+      aria-label={ariaLabel}
+      aria-current={status === 'current' ? 'step' : undefined}
+    >
       {/* Connector line */}
       {!isLast && (
         <div
@@ -83,20 +103,20 @@ const StageNode: React.FC<StageNodeProps> = ({ stage, status, stageRecord, isLas
             ? 'bg-white border-brand-primary ring-4 ring-blue-100'
             : 'bg-white border-border-default'
         }`}
-        aria-label={`${label}: ${status}`}
+        aria-hidden="true"
       >
         {status === 'completed' && (
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
         )}
         {status === 'current' && (
-          <div className="w-2 h-2 rounded-full bg-brand-primary" />
+          <div className="w-2 h-2 rounded-full bg-brand-primary" aria-hidden="true" />
         )}
       </div>
 
-      {/* Stage details */}
-      <div className="flex-1 min-w-0 pb-6">
+      {/* Stage details — aria-hidden since the li aria-label covers all info */}
+      <div className="flex-1 min-w-0 pb-6" aria-hidden="true">
         <p
           className={`text-body-sm font-medium ${
             status === 'future' ? 'text-text-disabled' : 'text-text-primary'
@@ -113,7 +133,7 @@ const StageNode: React.FC<StageNodeProps> = ({ stage, status, stageRecord, isLas
             className="text-caption text-text-secondary mt-0.5"
             title={format(enteredAt, 'PPpp')}
           >
-            {formatDistanceToNow(enteredAt, { addSuffix: true })}
+            {format(enteredAt, 'PP')}
           </p>
         )}
       </div>
@@ -153,13 +173,13 @@ export const PermitStatusTimeline: React.FC<PermitStatusTimelineProps> = ({
     <div data-testid="timeline-panel">
       {/* Info request note */}
       {currentStatus === 'additional_info_needed' && infoRequestNote && (
-        <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
+        <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-md" role="note">
           <p className="text-body-sm font-medium text-orange-800 mb-1">Additional Information Required</p>
           <p className="text-body-sm text-orange-700">{infoRequestNote}</p>
         </div>
       )}
 
-      <ol className="list-none">
+      <ol aria-label="Permit application lifecycle" className="list-none">
         {allNodes.map((stage, index) => {
           const stageRecord = stageMap.get(stage);
           const nodeStatus = getStageStatus(stage, currentStatus, stageRecord);

@@ -6,6 +6,17 @@ import { useAuthStore } from '../store/auth.store';
 import { Skeleton } from '../components/ui/Skeleton';
 import { UserRole } from '../types/auth.types';
 
+// Admin pages
+const AdminApplicationsPage = lazy(() =>
+  import('../pages/admin/AdminApplicationsPage').then(m => ({ default: m.AdminApplicationsPage }))
+);
+const UserManagementPage = lazy(() =>
+  import('../pages/admin/UserManagementPage').then(m => ({ default: m.UserManagementPage }))
+);
+const AuditLogPage = lazy(() =>
+  import('../pages/admin/AuditLogPage').then(m => ({ default: m.AuditLogPage }))
+);
+
 const LoginPage = lazy(() => import('../pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('../pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('../pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
@@ -81,6 +92,38 @@ export function AppRouter() {
 
         {/* Dashboard — role-aware router */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+
+        {/* Admin routes — protected by admin RoleGuard */}
+        <Route
+          path="/admin/applications"
+          element={
+            <ProtectedRoute>
+              <RoleGuard allowedRoles={[UserRole.ADMIN]}>
+                <AdminApplicationsPage />
+              </RoleGuard>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <RoleGuard allowedRoles={[UserRole.ADMIN]}>
+                <UserManagementPage />
+              </RoleGuard>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/audit-log"
+          element={
+            <ProtectedRoute>
+              <RoleGuard allowedRoles={[UserRole.ADMIN]}>
+                <AuditLogPage />
+              </RoleGuard>
+            </ProtectedRoute>
+          }
+        />
 
         {/* Legacy role-based routes redirect to /dashboard */}
         <Route path="/applicant/*" element={<Navigate to="/dashboard" replace />} />

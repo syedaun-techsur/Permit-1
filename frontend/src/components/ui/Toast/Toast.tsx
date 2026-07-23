@@ -11,6 +11,10 @@ export interface ToastProps {
   onDismiss: (id: string) => void;
 }
 
+export interface ToastContainerProps {
+  toasts: ToastProps[];
+}
+
 const toastConfig: Record<ToastType, { icon: React.ReactNode; classes: string }> = {
   success: { icon: <CheckCircle className="w-5 h-5 text-status-approved" />, classes: 'border-status-approved' },
   error:   { icon: <AlertCircle className="w-5 h-5 text-feedback-error" />, classes: 'border-feedback-error' },
@@ -28,8 +32,6 @@ export const Toast: React.FC<ToastProps> = ({ id, type, message, duration = 5000
 
   return (
     <div
-      role="alert"
-      aria-live="polite"
       className={`flex items-start gap-3 bg-surface-card border-l-4 rounded-md shadow-md p-4 min-w-[300px] max-w-sm ${classes}`}
     >
       {icon}
@@ -42,5 +44,46 @@ export const Toast: React.FC<ToastProps> = ({ id, type, message, duration = 5000
         <X className="w-4 h-4" />
       </button>
     </div>
+  );
+};
+
+/**
+ * ToastContainer — renders all active toasts with correct ARIA live regions.
+ * - success/warning/info toasts: aria-live="polite" (announced when user is idle)
+ * - error toasts: rendered into a separate aria-live="assertive" region (announced immediately)
+ */
+export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts }) => {
+  const errorToasts = toasts.filter((t) => t.type === 'error');
+  const nonErrorToasts = toasts.filter((t) => t.type !== 'error');
+  const latestError = errorToasts[errorToasts.length - 1];
+
+  return (
+    <>
+      {/* Assertive live region — screen readers announce error messages immediately */}
+      <div
+        aria-live="assertive"
+        aria-atomic="true"
+        role="alert"
+        className="sr-only"
+      >
+        {latestError?.message}
+      </div>
+
+      {/* Polite live region container for all visual toasts (errors shown visually too) */}
+      <div
+        aria-live="polite"
+        aria-atomic="false"
+        role="status"
+        className="fixed bottom-4 right-4 z-50 flex flex-col gap-2"
+        aria-label="Notifications"
+      >
+        {nonErrorToasts.map((toast) => (
+          <Toast key={toast.id} {...toast} />
+        ))}
+        {errorToasts.map((toast) => (
+          <Toast key={toast.id} {...toast} />
+        ))}
+      </div>
+    </>
   );
 };

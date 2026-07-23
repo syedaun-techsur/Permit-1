@@ -5,9 +5,13 @@ import { SessionExpiryWarning } from '../auth/SessionExpiryWarning';
 interface AppShellProps {
   children: React.ReactNode;
   title?: string; // Optional page title suffix, e.g., permit.reference_number
+  // When true, <main> is rendered without the constrained/padded container so the
+  // page can provide its own layout (e.g. the role dashboards, which already center
+  // and pad their own content). NavBar + skip link + session warning still render.
+  bare?: boolean;
 }
 
-export const AppShell: React.FC<AppShellProps> = ({ children, title }) => {
+export const AppShell: React.FC<AppShellProps> = ({ children, title, bare = false }) => {
   useEffect(() => {
     document.title = title
       ? `${title} — Permit Management System`
@@ -29,7 +33,11 @@ export const AppShell: React.FC<AppShellProps> = ({ children, title }) => {
 
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <main id="main-content" tabIndex={-1} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 outline-none">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className={bare ? 'outline-none' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 outline-none'}
+        >
           {children}
         </main>
       </div>

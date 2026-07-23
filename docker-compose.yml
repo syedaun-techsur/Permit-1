@@ -94,7 +94,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      VITE_API_URL: http://localhost:3000
+      # Browser calls the API same-origin at /api (works behind any preview
+      # proxy); Vite forwards /api -> the backend service on the compose network.
+      VITE_API_URL: /api
+      VITE_PROXY_TARGET: http://backend:3000
     ports:
       - "5173:5173"
     volumes:

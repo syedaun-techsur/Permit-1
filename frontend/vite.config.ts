@@ -12,9 +12,15 @@ export default defineConfig({
     // returns "Blocked request. This host is not allowed." behind the proxy.
     allowedHosts: true,
     proxy: {
+      // The app calls `/api/*` (same-origin); forward to the backend and strip
+      // the `/api` prefix, since the backend mounts routes at the root
+      // (`/auth`, `/permits`, `/admin`, …) with no global prefix.
       '/api': {
-        target: 'http://localhost:3000',
+        // In docker-compose the backend is a separate service, reachable as
+        // `backend:3000` (VITE_PROXY_TARGET); native dev falls back to localhost.
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:3000',
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

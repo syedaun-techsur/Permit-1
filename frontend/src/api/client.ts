@@ -1,7 +1,12 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/auth.store';
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+// Default to a same-origin `/api` prefix so the app works behind any preview
+// proxy / in any browser (the Vite dev-server proxy forwards `/api/*` to the
+// backend and strips the prefix — see vite.config.ts). A hardcoded
+// `http://localhost:3000` only works when the browser IS the backend host.
+// Override with VITE_API_URL for a split deployment.
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,

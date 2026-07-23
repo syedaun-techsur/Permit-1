@@ -55,7 +55,7 @@ export function ApplicantDashboard() {
           </h1>
         </div>
         <button
-          onClick={() => navigate('/applications/new')}
+          onClick={() => navigate('/permits/new')}
           className="inline-flex items-center gap-2 bg-brand-primary hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary"
         >
           <Plus className="w-4 h-4" />
@@ -69,7 +69,7 @@ export function ApplicantDashboard() {
           <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-600 mb-6">You have no permit applications yet. Start your first application.</p>
           <button
-            onClick={() => navigate('/applications/new')}
+            onClick={() => navigate('/permits/new')}
             className="inline-flex items-center gap-2 bg-brand-primary hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -123,7 +123,7 @@ export function ApplicantDashboard() {
                       )}
                     </div>
                     <button
-                      onClick={() => navigate(`/applications/${action.id}`)}
+                      onClick={() => navigate(`/permits/${action.id}`)}
                       className="shrink-0 text-xs font-semibold bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg transition-colors"
                     >
                       Respond
@@ -139,7 +139,7 @@ export function ApplicantDashboard() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="text-base font-semibold text-gray-900">Recent Applications</h2>
               <button
-                onClick={() => navigate('/applications')}
+                onClick={() => navigate('/permits')}
                 className="text-sm text-brand-primary hover:underline focus:outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 View all →
@@ -161,7 +161,7 @@ export function ApplicantDashboard() {
                   <RecentApplicationRow
                     key={app.id}
                     application={app}
-                    onClick={(id) => navigate(`/applications/${id}`)}
+                    onClick={(id) => navigate(`/permits/${id}`)}
                   />
                 ))
               ) : (
@@ -176,7 +176,7 @@ export function ApplicantDashboard() {
               <h2 className="text-base font-semibold text-gray-900 mb-4">Status Distribution</h2>
               <StatusDonutChart
                 data={statusDistribution}
-                onSliceClick={(status) => navigate(`/applications?status=${status}`)}
+                onSliceClick={(status) => navigate(`/permits?status=${status}`)}
               />
             </div>
           )}

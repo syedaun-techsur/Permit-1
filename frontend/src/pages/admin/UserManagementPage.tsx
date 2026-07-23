@@ -6,6 +6,7 @@ import { CreateUserModal } from '../../components/admin/CreateUserModal';
 import { DeactivateConfirmDialog } from '../../components/admin/DeactivateConfirmDialog';
 import { useAdminUsers, useUpdateUser } from '../../hooks/useAdmin';
 import { useUiStore } from '../../store/ui.store';
+import { AppShell } from '../../components/layout/AppShell';
 import type { AdminUser, AdminUsersQuery } from '../../types/admin.types';
 
 const ROLE_BADGE: Record<string, 'primary' | 'warning' | 'error' | 'default'> = {
@@ -71,7 +72,7 @@ export function UserManagementPage() {
   };
 
   return (
-    <>
+    <AppShell bare title="User Management">
       <title>User Management — Permit Management System</title>
 
       <div className="min-h-screen bg-surface-base">
@@ -324,6 +325,6 @@ export function UserManagementPage() {
           }}
         />
       )}
-    </>
+    </AppShell>
   );
 }

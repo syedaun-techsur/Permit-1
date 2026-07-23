@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { AssignReviewerModal } from '../../components/admin/AssignReviewerModal';
 import { useAdminPermits } from '../../hooks/useAdmin';
+import { AppShell } from '../../components/layout/AppShell';
 import type { AdminPermit, AdminPermitsQuery } from '../../types/admin.types';
 
 const STATUS_COLORS: Record<string, 'draft' | 'submitted' | 'under_review' | 'additional_info' | 'approved' | 'rejected' | 'default'> = {
@@ -38,7 +39,7 @@ export function AdminApplicationsPage() {
   };
 
   return (
-    <>
+    <AppShell bare title="All Applications">
       <title>All Applications — Permit Management System</title>
 
       <div className="min-h-screen bg-surface-base">
@@ -287,6 +288,6 @@ export function AdminApplicationsPage() {
           }}
         />
       )}
-    </>
+    </AppShell>
   );
 }

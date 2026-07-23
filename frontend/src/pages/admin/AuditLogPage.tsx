@@ -6,6 +6,7 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { useAuditLog } from '../../hooks/useAdmin';
 import { adminApi } from '../../api/admin.api';
 import { useUiStore } from '../../store/ui.store';
+import { AppShell } from '../../components/layout/AppShell';
 import type { AuditLogQuery } from '../../types/admin.types';
 
 const KNOWN_ACTIONS = [
@@ -69,7 +70,7 @@ export function AuditLogPage() {
   };
 
   return (
-    <>
+    <AppShell bare title="Audit Log">
       <title>Audit Log — Permit Management System</title>
 
       <div className="min-h-screen bg-surface-base">
@@ -256,6 +257,6 @@ export function AuditLogPage() {
           ) : null}
         </div>
       </div>
-    </>
+    </AppShell>
   );
 }

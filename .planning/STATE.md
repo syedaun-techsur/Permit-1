@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-admin-and-compliance-01-PLAN.md
-last_updated: "2026-07-23T01:22:30.762Z"
+stopped_at: Completed 05-admin-and-compliance-02-PLAN.md
+last_updated: "2026-07-23T01:34:47.790Z"
 last_activity: "2026-07-22 — Plan 01-02 complete: NestJS auth module, all /auth/* endpoints, JWT + RBAC guards"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 14
 ---
 
@@ -69,6 +69,7 @@ Progress: [█░░░░░░░░░] 14%
 | Phase 04-dashboards P03 | 3min | 2 tasks | 7 files |
 | Phase 04-dashboards P04 | 4min | 2 tasks | 2 files |
 | Phase 05-admin-and-compliance P01 | 6min | 2 tasks | 12 files |
+| Phase 05-admin-and-compliance P02 | 7min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,9 @@ Recent decisions affecting current work:
 - [Phase 05-admin-and-compliance]: AdminService uses QueryRunner transactions for atomic user mutation + audit entries (T-05-05)
 - [Phase 05-admin-and-compliance]: sortBy whitelist (5 allowed columns) + PERMIT_SORT_MAP prevents SQL injection in admin permits ORDER BY (T-05-02)
 - [Phase 05-admin-and-compliance]: CSV export: double-quote wrapping + tab-prefix on formula chars for injection protection (T-05-04)
+- [Phase 05-admin-and-compliance]: Axios blob download for CSV export keeps JWT in Authorization header (not URL) — T-05-08 mitigated
+- [Phase 05-admin-and-compliance]: Admin router routes added before /admin/* catch-all — React Router matches specific paths first
+- [Phase 05-admin-and-compliance]: E2E tests use page.route() API mocking — deterministic, no live backend dependency
 
 ### Pending Todos
 
@@ -128,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-23T01:22:30.761Z
-Stopped at: Completed 05-admin-and-compliance-01-PLAN.md
+Last session: 2026-07-23T01:34:47.789Z
+Stopped at: Completed 05-admin-and-compliance-02-PLAN.md
 Resume file: None

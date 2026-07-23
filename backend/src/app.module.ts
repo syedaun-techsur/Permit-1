@@ -10,6 +10,7 @@ import { AuditModule } from './audit/audit.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MessagesModule } from './messages/messages.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     NotificationsModule,
     MessagesModule,
     DashboardModule,
+    AdminModule,
   ],
   controllers: [HealthController],
 })

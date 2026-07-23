@@ -15,6 +15,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export const ForgotPasswordPage: React.FC = () => {
+  React.useEffect(() => { document.title = 'Reset Password — Permit Management System'; }, []);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 

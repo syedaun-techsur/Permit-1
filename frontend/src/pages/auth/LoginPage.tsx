@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,6 +16,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
+  useEffect(() => { document.title = 'Sign In — Permit Management System'; }, []);
   const { handleLogin, isLoading } = useAuth();
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({

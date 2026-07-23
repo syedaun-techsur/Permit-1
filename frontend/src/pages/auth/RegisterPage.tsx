@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,6 +30,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const RegisterPage: React.FC = () => {
+  useEffect(() => { document.title = 'Create Account — Permit Management System'; }, []);
   const { handleRegister, isLoading } = useAuth();
 
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({

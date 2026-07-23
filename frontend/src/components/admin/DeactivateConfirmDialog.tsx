@@ -33,40 +33,36 @@ export const DeactivateConfirmDialog: React.FC<DeactivateConfirmDialogProps> = (
   };
 
   return (
-    <div
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      title={`Deactivate ${user.fullName}?`}
+      size="sm"
       role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="deactivate-dialog-title"
+      id="deactivate-dialog"
       aria-describedby="deactivate-dialog-desc"
     >
-      <Modal
-        open={isOpen}
-        onClose={onClose}
-        title={`Deactivate ${user.fullName}?`}
-        size="sm"
+      <p
+        id="deactivate-dialog-desc"
+        className="text-body-md text-text-secondary mb-6"
       >
-        <p
-          id="deactivate-dialog-desc"
-          className="text-body-md text-text-secondary mb-6"
-        >
-          This will immediately end all active sessions for{' '}
-          <strong>{user.fullName}</strong> and prevent them from logging in.
-        </p>
+        This will immediately end all active sessions for{' '}
+        <strong>{user.fullName}</strong> and prevent them from logging in.
+      </p>
 
-        <div className="flex justify-end gap-3">
-          <Button variant="secondary" onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={() => void handleDeactivate()}
-            loading={loading}
-            disabled={loading}
-          >
-            Deactivate
-          </Button>
-        </div>
-      </Modal>
-    </div>
+      <div className="flex justify-end gap-3">
+        <Button variant="secondary" onClick={onClose} disabled={loading}>
+          Cancel
+        </Button>
+        <Button
+          variant="danger"
+          onClick={() => void handleDeactivate()}
+          loading={loading}
+          disabled={loading}
+        >
+          Deactivate
+        </Button>
+      </div>
+    </Modal>
   );
 };

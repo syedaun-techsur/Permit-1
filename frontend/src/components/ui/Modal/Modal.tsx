@@ -8,6 +8,10 @@ export interface ModalProps {
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg';
+  /** Use 'alertdialog' for destructive/confirmation dialogs (e.g., deactivate, delete) */
+  role?: 'dialog' | 'alertdialog';
+  id?: string;
+  'aria-describedby'?: string;
 }
 
 const sizeClasses = {
@@ -16,18 +20,84 @@ const sizeClasses = {
   lg: 'max-w-2xl',
 };
 
-export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, size = 'md' }) => {
-  const dialogRef = useRef<HTMLDivElement>(null);
+const FOCUSABLE_SELECTORS =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-  // Trap focus and ESC key
+export const Modal: React.FC<ModalProps> = ({
+  open,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  role = 'dialog',
+  id,
+  'aria-describedby': ariaDescribedby,
+}) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = id ? `${id}-title` : 'modal-title';
+
   useEffect(() => {
     if (!open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+
+    // Save the element that triggered the modal open
+    const triggerEl = document.activeElement as HTMLElement | null;
+
+    const modalEl = dialogRef.current;
+    if (!modalEl) return;
+
+    // Focus first focusable element inside modal
+    const focusable = Array.from(
+      modalEl.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)
+    );
+    if (focusable.length > 0) {
+      focusable[0].focus();
+    } else {
+      modalEl.focus();
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      // Re-query focusable elements in case content changed
+      const currentFocusable = Array.from(
+        modalEl.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)
+      );
+      if (currentFocusable.length === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const first = currentFocusable[0];
+      const last = currentFocusable[currentFocusable.length - 1];
+
+      if (e.shiftKey) {
+        // Shift+Tab: if focus is on first element, wrap to last
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        // Tab: if focus is on last element, wrap to first
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
-    document.addEventListener('keydown', handleKey);
-    dialogRef.current?.focus();
-    return () => document.removeEventListener('keydown', handleKey);
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      // Restore focus to the trigger element when modal closes
+      triggerEl?.focus();
+    };
   }, [open, onClose]);
 
   if (!open) return null;
@@ -35,9 +105,10 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, si
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
+      role={role}
       aria-modal="true"
-      aria-labelledby={title ? 'modal-title' : undefined}
+      aria-labelledby={title ? titleId : undefined}
+      aria-describedby={ariaDescribedby}
     >
       {/* Backdrop */}
       <div
@@ -53,7 +124,7 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, si
       >
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-border-default">
-            <h2 id="modal-title" className="text-heading-md text-text-primary">{title}</h2>
+            <h2 id={titleId} className="text-heading-md text-text-primary">{title}</h2>
             <Button variant="icon" onClick={onClose} aria-label="Close modal">
               <X className="w-4 h-4" />
             </Button>

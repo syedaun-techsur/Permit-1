@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, Activity, CalendarCheck, CheckCircle, Users, FileText, ClipboardList } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -47,6 +47,7 @@ function ActivityEntry({ item }: { item: AuditLogEntry }) {
 }
 
 export function AdminDashboard() {
+  useEffect(() => { document.title = 'Admin Dashboard — Permit Management System'; }, []);
   const navigate = useNavigate();
   const { data, isLoading, error, refetch } = useDashboard('admin');
   const [lastRefreshed] = useState(new Date());

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, AlertCircle, MessageSquare, Plus } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboard';
@@ -15,6 +16,7 @@ function getGreeting(): string {
 }
 
 export function ApplicantDashboard() {
+  useEffect(() => { document.title = 'Dashboard — Permit Management System'; }, []);
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const firstName = user?.fullName?.split(' ')[0] ?? 'there';

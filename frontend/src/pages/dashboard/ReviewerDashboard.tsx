@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardList, Clock, Inbox, MessageSquare } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboard';
@@ -63,6 +64,7 @@ function PriorityQueueRow({ item, onView }: { item: PriorityQueueItem; onView: (
 }
 
 export function ReviewerDashboard() {
+  useEffect(() => { document.title = 'Dashboard — Permit Management System'; }, []);
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const firstName = user?.fullName?.split(' ')[0] ?? 'Reviewer';

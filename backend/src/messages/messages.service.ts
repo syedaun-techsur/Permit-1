@@ -75,11 +75,15 @@ export class MessagesService {
       throw new NotFoundException('Application not found');
     }
 
+    // Any reviewer/admin may access an application's thread (consistent with the
+    // permit-detail read policy) — reviewers work a shared queue and open a
+    // permit's messages before "Begin Review" assigns them. Applicants only
+    // access their own.
     const isApplicant = application.applicantId === userId;
-    const isAssignedReviewer = application.reviewerId === userId;
-    const isAdmin = userRole === UserRole.ADMIN;
+    const isReviewerOrAdmin =
+      userRole === UserRole.REVIEWER || userRole === UserRole.ADMIN;
 
-    if (!isApplicant && !isAssignedReviewer && !isAdmin) {
+    if (!isApplicant && !isReviewerOrAdmin) {
       throw new ForbiddenException('You do not have access to this application');
     }
 

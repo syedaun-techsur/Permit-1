@@ -34,6 +34,12 @@ export const Modal: React.FC<ModalProps> = ({
   'aria-describedby': ariaDescribedby,
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
+  // Keep the latest onClose in a ref so the focus/trap effect below can depend
+  // on [open] alone. Depending on onClose (often an inline handler that changes
+  // every render) re-ran the effect on each keystroke and yanked focus back to
+  // the first focusable element (the ✕ button).
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const titleId = id ? `${id}-title` : 'modal-title';
 
   useEffect(() => {
@@ -58,7 +64,7 @@ export const Modal: React.FC<ModalProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -98,7 +104,7 @@ export const Modal: React.FC<ModalProps> = ({
       // Restore focus to the trigger element when modal closes
       triggerEl?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

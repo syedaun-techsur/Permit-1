@@ -22,6 +22,7 @@ import { UpdatePermitDto } from './dto/update-permit.dto';
 import { RequestInfoDto } from './dto/request-info.dto';
 import { RespondToInfoDto } from './dto/respond-to-info.dto';
 import { DecideDto } from './dto/decide.dto';
+import { AssignReviewerDto } from './dto/assign-reviewer.dto';
 import { ApplicationStatus } from './entities/permit-application.entity';
 import { UserRole } from '../common/enums/role.enum';
 
@@ -101,6 +102,19 @@ export class PermitsController {
     @Request() req: AuthenticatedRequest,
   ) {
     return this.permitsService.updateDraft(req.user.id, id, dto);
+  }
+
+  // PATCH /permits/:id/assign-reviewer — admin assigns (or clears) the reviewer.
+  // (:id/assign-reviewer has an extra segment so it never collides with :id.)
+  @Patch(':id/assign-reviewer')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async assignReviewer(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AssignReviewerDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.permitsService.assignReviewer(id, dto.reviewerId, req.user.id);
   }
 
   // POST /permits/:id/submit — submit draft (rate-limited)

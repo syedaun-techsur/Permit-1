@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useForm, FormProvider, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -187,10 +187,15 @@ const RETRY_DELAYS_MS = [1000, 2000, 4000];
 export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
   const { id: routeId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { upsertPermit } = usePermitsStore();
   const { addToast } = useUiStore();
 
-  const [currentStep, setCurrentStep] = useState(1);
+  // When a draft is created from Step 1 we navigate to the edit route with
+  // { step: 2 }, so the user lands on Documents instead of repeating Step 1.
+  const [currentStep, setCurrentStep] = useState<number>(
+    (location.state as { step?: number } | null)?.step ?? 1,
+  );
   const [permitId, setPermitId] = useState<string | null>(routeId ?? null);
   const [permitStatus, setPermitStatus] = useState<import('../../types/permit.types').ApplicationStatus>('draft');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -349,7 +354,7 @@ export function PermitFormPage({ mode = 'create' }: PermitFormPageProps) {
       setPermitId(permit.id);
       setPermitStatus(permit.status);
       upsertPermit(permit);
-      navigate(`/permits/${permit.id}/edit`, { replace: true });
+      navigate(`/permits/${permit.id}/edit`, { replace: true, state: { step: 2 } });
       return permit.id;
     } catch {
       addToast('error', 'Failed to create application. Please try again.');
